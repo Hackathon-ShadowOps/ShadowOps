@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.kluster.controller.APIEndpoint;
 import com.kluster.controller.APIRunner;
 import com.kluster.controller.Database;
+import com.kluster.endpoints.Landing;
 
 
 public class Kluster {
@@ -21,6 +22,7 @@ public class Kluster {
 
     public void registerEndpoints() {
         ArrayList<APIEndpoint> endpointsGet = new ArrayList<>();
+        endpointsGet.add(new Landing());
 
         ArrayList<APIEndpoint> endpointsPost = new ArrayList<>();
 

@@ -1,6 +1,7 @@
 package com.kluster.endpoints;
 
 import com.kluster.controller.APIEndpoint;
+import com.kluster.controller.HTMLServe;
 
 import io.javalin.http.Context;
 
@@ -12,8 +13,14 @@ public class Landing extends APIEndpoint {
 
     @Override
     public void handle(Context ctx) throws UnsupportedOperationException {
-        // Här kan du implementera logiken för att hantera förfrågningar till landningssidan. För närvarande kastar den ett undantag eftersom metoden inte är implementerad.
-        throw new UnsupportedOperationException("Unimplemented method 'handle'");
+        String landingPage = HTMLServe.getPage("Landing");
+
+        if (landingPage == null) {
+            ctx.status(500).result("Error loading landing page");
+            return;
+        }
+
+        ctx.contentType("text/html").result(landingPage);
     }
-    
+
 }

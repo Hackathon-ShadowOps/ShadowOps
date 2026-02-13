@@ -1,0 +1,14 @@
+:root {
+	--white: #f0f0f0;
+	--blue: #202f40;
+	--yellow: #ffbf40;
+	--orange: #f57a3c;
+	--red: #eb3539;
+	--black: #121212;
+	--footer-height: 30vh;
+	--third-width: calc(100% / 3);
+}
+
+h1{
+	color: var(--orange);
+}
