@@ -13,15 +13,25 @@ public class Database {
 
     public Database() {
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:database.db");
+            String env = System.getenv("DATABASE_URL");
+
+            if (env == null || env.trim().isEmpty()) {
+                System.out.println("\u001B[31mDATABASE_URL not set. Using default SQLite database.\u001B[0m");
+                env = "jdbc:sqlite:kluster.db";
+            }
+
+            connection = DriverManager.getConnection(env);
         } catch (SQLException e) {
-            e.printStackTrace();
             System.out.print("Failed to connect to database!");
+            System.exit(500);
         }
 
         createAllTables();
     }
 
     private void createAllTables() {
+        // TODO: Implement table creation logic here (e.g., users, missions, logs, etc.)
     }
+
+    // TODO: Implement database operations (CRUD) for Personal, Missions, Logs, etc.
 }

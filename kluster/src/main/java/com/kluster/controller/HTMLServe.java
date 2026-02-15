@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class HTMLServe {
-    public final static String baseFolderPath = "kluster/src/main/resources/html";
+    public final static String baseFolderPath = ClassLoader.getSystemResource("html").getPath();
 
     public static String getPage(String folderPath) {
         if (folderPath == null || folderPath.isEmpty()) {
@@ -22,8 +22,7 @@ public class HTMLServe {
             css = Files.readString(Paths.get(basePath + "/style.css"));
             js = Files.readString(Paths.get(basePath + "/script.js"));
         } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Error reading landing page files: " + basePath);
+            System.err.println("Error reading landing page files");
             return null;
         }
 

@@ -1,6 +1,8 @@
 package com.kluster.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.javalin.Javalin;
@@ -11,11 +13,38 @@ public class APIRunner {
     private ArrayList<APIEndpoint> getEndpoints = new ArrayList<>();
     private ArrayList<APIEndpoint> postEndpoints = new ArrayList<>();
     private ArrayList<APIEndpoint> deleteEndpoints = new ArrayList<>();
+    private List<String> allowedOrigins = new ArrayList<>();
+    private boolean allowAnyOrigin = false;
 
     public APIRunner() {
         app = Javalin.create(config -> {
             config.http.defaultContentType = "application/json";
         });
+
+        // Comma-separated list, e.g. "https://example.com,https://api.example.com".
+        String env = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (env == null || env.trim().isEmpty()) {
+            allowAnyOrigin = true;
+            System.out.println("\u001B[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.\u001B[0m");
+        } else {
+            allowedOrigins = Arrays.asList(env.split("\\s*,\\s*"));
+            for (String o : allowedOrigins) {
+                if ("*".equals(o)) {
+                    allowAnyOrigin = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean isOriginAllowed(String origin) {
+        if (allowAnyOrigin) return true;
+        if (origin == null) return false;
+        for (String allowed : allowedOrigins) {
+            if (allowed == null) continue;
+            if (allowed.equalsIgnoreCase(origin) || allowed.equals("*")) return true;
+        }
+        return false;
     }
 
     public void registerEndpoints(ArrayList<APIEndpoint> getEndpoints, ArrayList<APIEndpoint> postEndpoints,
@@ -26,16 +55,32 @@ public class APIRunner {
     }
 
     public APIRunner start() {
-        // Add CORS headers FIRST before registering routes
         app.before(ctx -> {
-            ctx.header("Access-Control-Allow-Origin", "*");
+            String origin = ctx.header("Origin");
+            if (isOriginAllowed(origin)) {
+                if (allowAnyOrigin) {
+                    ctx.header("Access-Control-Allow-Origin", "*");
+                } else {
+                    ctx.header("Access-Control-Allow-Origin", origin);
+                    ctx.header("Access-Control-Allow-Credentials", "true");
+                }
+            }
+
             ctx.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
             ctx.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
         });
 
-        // Handle preflight requests
         app.options("/*", ctx -> {
-            ctx.header("Access-Control-Allow-Origin", "*");
+            String origin = ctx.header("Origin");
+            if (isOriginAllowed(origin)) {
+                if (allowAnyOrigin) {
+                    ctx.header("Access-Control-Allow-Origin", "*");
+                } else {
+                    ctx.header("Access-Control-Allow-Origin", origin);
+                    ctx.header("Access-Control-Allow-Credentials", "true");
+                }
+            }
+
             ctx.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
             ctx.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
         });
