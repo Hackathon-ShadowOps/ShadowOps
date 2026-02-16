@@ -1,6 +1,6 @@
 package com.kluster.models;
 
-public enum PersonalRole {
+public enum PersonnelRole {
     PILOT,
     GROUND_CREW,
     COMMANDER,

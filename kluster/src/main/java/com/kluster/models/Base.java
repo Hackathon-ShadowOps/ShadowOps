@@ -7,11 +7,11 @@ public class Base {
     private BaseActivityStatus activityStatus;
     private IncidentReport currentIncident;
     private Airplane[] stationedAirplanes;
-    private Personal[] stationedPersonals;
+    private Personnel[] stationedPersonnel;
     private int airportCapacity;
     private int airportRunwayLength;
     private RunwayType runwayType;
-    private boolean runWayIsAHighway;
+    private boolean runwayIsAHighway;
     private DeliveryType[] possibleDeliveryTypes;
 
     public Base(GpsCords gpsCords) {
@@ -42,8 +42,8 @@ public class Base {
         return stationedAirplanes;
     }
 
-    public Personal[] getStationedPersonals() {
-        return stationedPersonals;
+    public Personnel[] getStationedPersonnel() {
+        return stationedPersonnel;
     }
 
     public int getAirportCapacity() {
@@ -58,8 +58,8 @@ public class Base {
         return runwayType;
     }
 
-    public boolean isRunWayIsAHighway() {
-        return runWayIsAHighway;
+    public boolean isRunwayIsAHighway() {
+        return runwayIsAHighway;
     }
 
     public DeliveryType[] getPossibleDeliveryTypes() {
@@ -90,8 +90,8 @@ public class Base {
         this.stationedAirplanes = stationedAirplanes;
     }
 
-    public void setStationedPersonals(Personal[] stationedPersonals) {
-        this.stationedPersonals = stationedPersonals;
+    public void setStationedPersonnel(Personnel[] stationedPersonnel) {
+        this.stationedPersonnel = stationedPersonnel;
     }
 
     public void setAirportCapacity(int airportCapacity) {
@@ -106,8 +106,8 @@ public class Base {
         this.runwayType = runwayType;
     }
 
-    public void setRunWayIsAHighway(boolean runWayIsAHighway) {
-        this.runWayIsAHighway = runWayIsAHighway;
+    public void setRunwayIsAHighway(boolean runwayIsAHighway) {
+        this.runwayIsAHighway = runwayIsAHighway;
     }
 
     public void setPossibleDeliveryTypes(DeliveryType[] possibleDeliveryTypes) {

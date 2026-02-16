@@ -1,21 +1,21 @@
 package com.kluster.models;
 
-public class Personal {
+public class Personnel {
     private String id;
     private String name;
-    private PersonalRole role;
+    private PersonnelRole role;
     private boolean isActive;
     private String passwordHash;
     private Permission[] permissions;
 
-    public Personal(String id, String name, String rank, PersonalRole role) {
+    public Personnel(String id, String name, String rank, PersonnelRole role) {
         this.id = id;
         this.name = name;
         this.role = role;
         this.isActive = true;
     }
 
-    public Personal(String id, String name, String rank, PersonalRole role, Permission[] permissions) {
+    public Personnel(String id, String name, String rank, PersonnelRole role, Permission[] permissions) {
         this.id = id;
         this.name = name;
         this.role = role;
@@ -46,7 +46,7 @@ public class Personal {
         return isActive;
     }
 
-    public PersonalRole getRole() {
+    public PersonnelRole getRole() {
         return role;
     }
 
@@ -62,7 +62,7 @@ public class Personal {
         isActive = active;
     }
 
-    public void setRole(PersonalRole role) {
+    public void setRole(PersonnelRole role) {
         this.role = role;
     }
 

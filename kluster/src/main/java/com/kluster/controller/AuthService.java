@@ -5,8 +5,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
-import com.kluster.models.Personal;
-import com.kluster.models.PersonalRole;
+import com.kluster.models.Personnel;
+import com.kluster.models.PersonnelRole;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.time.Instant;
@@ -28,7 +28,7 @@ import java.security.SecureRandom;
 public class AuthService {
     private final Algorithm jwtAlg;
     private final JWTVerifier verifier;
-    private final Map<String, Personal> users = new ConcurrentHashMap<>(); // In-memory user store (Replace with DB in production)
+    private final Map<String, Personnel> users = new ConcurrentHashMap<>(); // In-memory user store (Replace with DB in production)
     private final Map<String, RefreshTokenRecord> refreshStore = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -52,8 +52,8 @@ public class AuthService {
      * @param role
      * @param plainPassword
      */
-    public void register(String id, String name, String rank, PersonalRole role, String plainPassword) {
-        Personal p = new Personal(id, name, rank, role);
+    public void register(String id, String name, String rank, PersonnelRole role, String plainPassword) {
+        Personnel p = new Personnel(id, name, rank, role);
         String hash = BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
         p.setPasswordHash(hash);
         users.put(id, p);
@@ -64,7 +64,7 @@ public class AuthService {
      * @param id
      * @return
      */
-    public Personal findById(String id) {
+    public Personnel findById(String id) {
         return users.get(id);
     }
 
@@ -72,7 +72,7 @@ public class AuthService {
      * Authenticate by id and password. Returns a signed JWT on success, or null on failure.
      */
     public String authenticate(String id, String plainPassword) {
-        Personal p = users.get(id);
+        Personnel p = users.get(id);
         if (p == null || p.getPasswordHash() == null) return null;
         if (!BCrypt.checkpw(plainPassword, p.getPasswordHash())) return null;
         return createToken(p, 60);
@@ -83,7 +83,7 @@ public class AuthService {
      * Access tokens are short-lived; refresh tokens are opaque and rotated on use.
      */
     public AuthResponse authenticateWithRefresh(String id, String plainPassword, long accessMinutes, long refreshDays) {
-        Personal p = users.get(id);
+        Personnel p = users.get(id);
         if (p == null || p.getPasswordHash() == null) return null;
         if (!BCrypt.checkpw(plainPassword, p.getPasswordHash())) return null;
 
@@ -99,7 +99,7 @@ public class AuthService {
      * @param minutesValid
      * @return
      */
-    public String createToken(Personal user, long minutesValid) {
+    public String createToken(Personnel user, long minutesValid) {
         Instant now = Instant.now();
         Date expires = Date.from(now.plus(minutesValid, ChronoUnit.MINUTES));
         return JWT.create()
@@ -147,7 +147,7 @@ public class AuthService {
 
         // rotate: issue new refresh token
         String newRefresh = issueRefreshToken(userId, refreshDays);
-        Personal p = users.get(userId);
+        Personnel p = users.get(userId);
         if (p == null) return null;
         String newAccess = createToken(p, newAccessMinutes);
         Instant now = Instant.now();
@@ -162,7 +162,7 @@ public class AuthService {
     /**
      * Validate a token and return the corresponding Personal if valid and present.
      */
-    public Personal validateToken(String token) {
+    public Personnel validateToken(String token) {
         try {
             DecodedJWT jwt = verifier.verify(token);
             String id = jwt.getSubject();
@@ -189,9 +189,9 @@ public class AuthService {
         public final String refreshToken;
         public final Date accessExpiresAt;
         public final Date refreshExpiresAt;
-        public final Personal user;
+        public final Personnel user;
 
-        public AuthResponse(String accessToken, String refreshToken, Date accessExpiresAt, Date refreshExpiresAt, Personal user) {
+        public AuthResponse(String accessToken, String refreshToken, Date accessExpiresAt, Date refreshExpiresAt, Personnel user) {
             this.accessToken = accessToken;
             this.refreshToken = refreshToken;
             this.accessExpiresAt = accessExpiresAt;

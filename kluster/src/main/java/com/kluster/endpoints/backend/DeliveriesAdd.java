@@ -1,14 +1,21 @@
-package com.kluster.endpoints;
+package com.kluster.endpoints.backend;
 
+import com.kluster.Kluster;
 import com.kluster.controller.APIEndpoint;
 import com.kluster.controller.HTMLServe;
 
 import io.javalin.http.Context;
 
-public class Landing extends APIEndpoint {
+public class DeliveriesAdd extends APIEndpoint {
+    private final Kluster kluster;
+
+    public DeliveriesAdd(Kluster kluster) {
+        this.kluster = kluster;
+    }
+
     @Override
     public String path() {
-        return "/";
+        return "/api/v1/{baseId}/deliveries";
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.kluster.controller;
 
-import com.kluster.models.Personal;
-import com.kluster.models.PersonalRole;
+import com.kluster.models.Personnel;
+import com.kluster.models.PersonnelRole;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +26,7 @@ public class AuthServiceTest {
         } catch (NoSuchFieldException e) {
             // Some JVMs may not allow modifying env; fall back to hoping it's set externally
             System.out.println("\u001B[33mWarning: Could not set JWT_SECRET via reflection. Ensure it's set in the environment before running tests.\u001B[0m");
-            System.exit(500);
+            throw new IllegalStateException("Failed to connect to database", e);
         }
     }
 
@@ -34,7 +34,7 @@ public class AuthServiceTest {
     void testAuthenticateAndRefreshFlow() {
         AuthService auth = new AuthService();
 
-        auth.register("u1", "Alice", "Captain", PersonalRole.COMMANDER, "password123");
+        auth.register("u1", "Alice", "Captain", PersonnelRole.COMMANDER, "password123");
 
         AuthService.AuthResponse r = auth.authenticateWithRefresh("u1", "password123", 10, 1);
         assertNotNull(r, "AuthResponse should not be null");
@@ -43,7 +43,7 @@ public class AuthServiceTest {
         assertNotNull(r.user, "User must be returned");
         assertEquals("u1", r.user.getId());
 
-        Personal validated = auth.validateToken(r.accessToken);
+        Personnel validated = auth.validateToken(r.accessToken);
         assertNotNull(validated, "validateToken should return user for valid token");
         assertEquals("u1", validated.getId());
 
@@ -65,7 +65,7 @@ public class AuthServiceTest {
     @Test
     void testAuthenticateInvalidPassword() {
         AuthService auth = new AuthService();
-        auth.register("u2", "Bob", "Engineer", PersonalRole.ENGINEER, "secret");
+        auth.register("u2", "Bob", "Engineer", PersonnelRole.ENGINEER, "secret");
 
         String token = auth.authenticate("u2", "wrong");
         assertNull(token, "authenticate should return null for wrong password");
