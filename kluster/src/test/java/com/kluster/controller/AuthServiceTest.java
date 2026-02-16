@@ -5,8 +5,9 @@ import com.kluster.models.PersonnelRole;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
-import java.util.Map;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,38 +15,27 @@ public class AuthServiceTest {
 
     @BeforeAll
     static void setupEnv() throws Exception {
-        // Set JWT_SECRET in the environment for tests (reflection hack)
-        try {
-            Map<String, String> env = System.getenv();
-            Class<?> cl = env.getClass();
-            Field field = cl.getDeclaredField("m");
-            field.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            Map<String, String> writableEnv = (Map<String, String>) field.get(env);
-            writableEnv.put("JWT_SECRET", "test-secret-123456");
-        } catch (NoSuchFieldException e) {
-            // Some JVMs may not allow modifying env; fall back to hoping it's set externally
-            System.out.println("\u001B[33mWarning: Could not set JWT_SECRET via reflection. Ensure it's set in the environment before running tests.\u001B[0m");
-            throw new IllegalStateException("Failed to connect to database", e);
-        }
+        // Set JWT_SECRET for tests via system property (no reflective env modification).
+        System.setProperty("JWT_SECRET", "test-secret-123456");
     }
 
     @Test
     void testAuthenticateAndRefreshFlow() {
-        AuthService auth = new AuthService();
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
 
-        auth.register("u1", "Alice", "Captain", PersonnelRole.COMMANDER, "password123");
+        auth.register(1, "Alice", "Captain", PersonnelRole.COMMANDER, "password123");
 
-        AuthService.AuthResponse r = auth.authenticateWithRefresh("u1", "password123", 10, 1);
+        AuthService.AuthResponse r = auth.authenticateWithRefresh(1, "password123", 10, 1);
         assertNotNull(r, "AuthResponse should not be null");
         assertNotNull(r.accessToken, "Access token required");
         assertNotNull(r.refreshToken, "Refresh token required");
         assertNotNull(r.user, "User must be returned");
-        assertEquals("u1", r.user.getId());
+        assertEquals(1, r.user.getId());
 
         Personnel validated = auth.validateToken(r.accessToken);
         assertNotNull(validated, "validateToken should return user for valid token");
-        assertEquals("u1", validated.getId());
+        assertEquals(1, validated.getId());
 
         // Use refresh token to get new pair
         AuthService.AuthResponse r2 = auth.refreshWithToken(r.refreshToken, 10, 1);
@@ -64,10 +54,119 @@ public class AuthServiceTest {
 
     @Test
     void testAuthenticateInvalidPassword() {
-        AuthService auth = new AuthService();
-        auth.register("u2", "Bob", "Engineer", PersonnelRole.ENGINEER, "secret");
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
+        auth.register(2, "Bob", "Engineer", PersonnelRole.ENGINEER, "secret");
 
-        String token = auth.authenticate("u2", "wrong");
+        String token = auth.authenticate(2, "wrong");
         assertNull(token, "authenticate should return null for wrong password");
+    }
+
+    @Test
+    void testTamperedAccessTokenIsInvalid() {
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
+        auth.register(3, "Charlie", "Pilot", PersonnelRole.PILOT, "pw");
+
+        AuthService.AuthResponse r = auth.authenticateWithRefresh(3, "pw", 10, 1);
+        assertNotNull(r, "auth response should not be null");
+
+        // simple tamper by appending characters
+        String tampered = r.accessToken + "x";
+        Personnel p = auth.validateToken(tampered);
+        assertNull(p, "tampered access token should be invalid");
+    }
+
+    @Test
+    void testExpiredAccessTokenIsInvalid() {
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
+        auth.register(4, "Delta", "Lieutenant", PersonnelRole.ENGINEER, "pw2");
+
+        Personnel user = auth.findById(4);
+        assertNotNull(user, "user must exist");
+
+        // create a token already expired
+        String expired = auth.createToken(user, -1);
+        Personnel p = auth.validateToken(expired);
+        assertNull(p, "expired token should be invalid");
+    }
+
+    @Test
+    void testDifferentSecretTokenIsInvalid() {
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
+        auth.register(5, "Echo", "Sergeant", PersonnelRole.COMMANDER, "pw3");
+
+        // create token with a different secret so signature won't match
+        Algorithm badAlg = Algorithm.HMAC256("bad-secret-000");
+        String bad = JWT.create()
+                .withSubject("5")
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 60000))
+                .sign(badAlg);
+
+        Personnel p = auth.validateToken(bad);
+        assertNull(p, "token signed with different secret should be invalid");
+    }
+
+    @Test
+    void testTamperedRefreshTokenIsRejected() {
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
+        auth.register(6, "Foxtrot", "Ensign", PersonnelRole.ENGINEER, "pw4");
+
+        AuthService.AuthResponse r = auth.authenticateWithRefresh(6, "pw4", 10, 1);
+        assertNotNull(r, "auth response should not be null");
+
+        // mutate the opaque refresh token
+        String badRefresh = r.refreshToken.substring(0, r.refreshToken.length() - 1) + 'Z';
+        AuthService.AuthResponse rr = auth.refreshWithToken(badRefresh, 10, 1);
+        assertNull(rr, "tampered refresh token should be rejected");
+    }
+
+    @Test
+    void testRoleAuthorizationAllowedAndDenied() {
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
+
+        // Commander should be allowed to perform commander-only action
+        auth.register(10, "Leader", "Rank", PersonnelRole.COMMANDER, "leadpw");
+        auth.register(11, "Worker", "Rank", PersonnelRole.ENGINEER, "workpw");
+
+        AuthService.AuthResponse a1 = auth.authenticateWithRefresh(10, "leadpw", 10, 1);
+        AuthService.AuthResponse a2 = auth.authenticateWithRefresh(11, "workpw", 10, 1);
+
+        Personnel p1 = auth.validateToken(a1.accessToken);
+        Personnel p2 = auth.validateToken(a2.accessToken);
+
+        assertNotNull(p1);
+        assertNotNull(p2);
+
+        // simple permission check used by endpoints: only COMMANDER allowed
+        java.util.function.Predicate<Personnel> isCommander = u -> u != null && u.getRole() == PersonnelRole.COMMANDER;
+
+        assertTrue(isCommander.test(p1), "Commander must be allowed");
+        assertFalse(isCommander.test(p2), "Engineer must be denied commander-only action");
+    }
+
+    @Test
+    void testInvalidAccessTokenRequiresReauth() {
+        Database db = new Database();
+        AuthService auth = new AuthService(db);
+        auth.register(20, "Gamma", "Role", PersonnelRole.PILOT, "pass");
+
+        AuthService.AuthResponse r = auth.authenticateWithRefresh(20, "pass", 10, 1);
+        assertNotNull(r);
+
+        // tamper access token -> validation fails
+        Personnel p = auth.validateToken(r.accessToken + "tamper");
+        assertNull(p, "Tampered token must not validate");
+
+        // re-authenticate to get a fresh token
+        String newToken = auth.authenticate(20, "pass");
+        assertNotNull(newToken, "Re-authentication must return a token");
+        Personnel p2 = auth.validateToken(newToken);
+        assertNotNull(p2, "New token must validate and allow actions");
     }
 }

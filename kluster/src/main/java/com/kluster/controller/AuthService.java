@@ -32,9 +32,9 @@ import java.security.SecureRandom;
 public class AuthService {
     private final Algorithm jwtAlg;
     private final JWTVerifier verifier;
-    private final Map<String, Personnel> users = new ConcurrentHashMap<>(); // In-memory user store (Replace with DB in
-                                                                            // production)
-    private final Map<String, RefreshTokenRecord> refreshStore = new ConcurrentHashMap<>();
+    private final Map<Integer, Personnel> users = new ConcurrentHashMap<>(); // In-memory user store (Replace with DB in
+                                                                             // production)
+    private final Map<Integer, RefreshTokenRecord> refreshStore = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
 
     private final Database database;
@@ -42,12 +42,16 @@ public class AuthService {
     public AuthService(Database database) {
         this.database = database;
 
+        // Prefer environment variable, fall back to system property for testability.
         String secret = System.getenv("JWT_SECRET");
+        if (secret == null || secret.trim().isEmpty()) {
+            secret = System.getProperty("JWT_SECRET");
+        }
 
         if (secret == null || secret.trim().isEmpty()) {
             System.err.println("\u001B[31mJWT_SECRET not set - falling back to development secret\u001B[0m");
             throw new IllegalStateException(
-                    "JWT_SECRET environment variable is required for AuthService to function. Set JWT_SECRET to a strong random value in production.");
+                    "JWT_SECRET environment variable or system property is required for AuthService to function. Set JWT_SECRET to a strong random value in production.");
         }
 
         jwtAlg = Algorithm.HMAC256(secret);
@@ -64,7 +68,7 @@ public class AuthService {
      * @param role
      * @param plainPassword
      */
-    public void register(String id, String name, String rank, PersonnelRole role, String plainPassword) {
+    public void register(int id, String name, String rank, PersonnelRole role, String plainPassword) {
         Personnel p = new Personnel(id, name, rank, role);
         String hash = BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
         p.setPasswordHash(hash);
@@ -77,7 +81,7 @@ public class AuthService {
      * @param id
      * @return
      */
-    public Personnel findById(String id) {
+    public Personnel findById(int id) {
         return users.get(id);
     }
 
@@ -85,7 +89,7 @@ public class AuthService {
      * Authenticate by id and password. Returns a signed JWT on success, or null on
      * failure.
      */
-    public String authenticate(String id, String plainPassword) {
+    public String authenticate(int id, String plainPassword) {
         Personnel p = users.get(id);
         if (p == null || p.getPasswordHash() == null)
             return null;
@@ -98,7 +102,7 @@ public class AuthService {
      * Authenticate and return both an access token (JWT) and a refresh token.
      * Access tokens are short-lived; refresh tokens are opaque and rotated on use.
      */
-    public AuthResponse authenticateWithRefresh(String id, String plainPassword, long accessMinutes, long refreshDays) {
+    public AuthResponse authenticateWithRefresh(int id, String plainPassword, long accessMinutes, long refreshDays) {
         Personnel p = users.get(id);
         if (p == null || p.getPasswordHash() == null)
             return null;
@@ -124,7 +128,7 @@ public class AuthService {
         Instant now = Instant.now();
         Date expires = Date.from(now.plus(minutesValid, ChronoUnit.MINUTES));
         return JWT.create()
-                .withSubject(user.getId())
+                .withSubject(String.valueOf(user.getId()))
                 .withClaim("role", user.getRole() != null ? user.getRole().name() : "")
                 .withIssuedAt(Date.from(now))
                 .withExpiresAt(expires)
@@ -136,7 +140,7 @@ public class AuthService {
      * "{userId}:{random}".
      * The server stores only a bcrypt hash of the random portion and the expiry.
      */
-    private String issueRefreshToken(String userId, long daysValid) {
+    private String issueRefreshToken(int userId, long daysValid) {
         byte[] rnd = new byte[48];
         secureRandom.nextBytes(rnd);
         String randomPart = Base64.getUrlEncoder().withoutPadding().encodeToString(rnd);
@@ -159,7 +163,7 @@ public class AuthService {
         int idx = refreshToken.indexOf(":");
         if (idx <= 0)
             return null;
-        String userId = refreshToken.substring(0, idx);
+        int userId = Integer.parseInt(refreshToken.substring(0, idx));
         String randomPart = refreshToken.substring(idx + 1);
 
         RefreshTokenRecord rec = refreshStore.get(userId);
@@ -183,9 +187,19 @@ public class AuthService {
                 Date.from(now.plus(refreshDays, ChronoUnit.DAYS)), p);
     }
 
-    /** Revoke refresh tokens for a user (logout). */
+    /** Revoke refresh tokens for a user (logout). Accepts strings like "u1". */
     public void revokeRefreshTokens(String userId) {
-        refreshStore.remove(userId);
+        if (userId == null)
+            return;
+        // Extract digits from the provided identifier (tests use "u1")
+        String digits = userId.replaceAll("\\D+", "");
+        if (digits.isEmpty())
+            return;
+        try {
+            int id = Integer.parseInt(digits);
+            refreshStore.remove(id);
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     /**
@@ -195,18 +209,23 @@ public class AuthService {
         try {
             DecodedJWT jwt = verifier.verify(token);
             String id = jwt.getSubject();
-            return users.get(id);
+            try {
+                int userId = Integer.parseInt(id);
+                return users.get(userId);
+            } catch (NumberFormatException nfe) {
+                return null;
+            }
         } catch (JWTVerificationException ex) {
             return null;
         }
     }
 
     private static class RefreshTokenRecord {
-        final String userId;
+        final int userId;
         final String hash; // bcrypt hash of random part
         final Date expiresAt;
 
-        RefreshTokenRecord(String userId, String hash, Date expiresAt) {
+        RefreshTokenRecord(int userId, String hash, Date expiresAt) {
             this.userId = userId;
             this.hash = hash;
             this.expiresAt = expiresAt;

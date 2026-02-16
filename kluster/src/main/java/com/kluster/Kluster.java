@@ -31,8 +31,10 @@ public class Kluster {
     private Database database;
 
     public Kluster() {
-        this.apiRunner = new APIRunner();
+        // Initialize database and auth service, then API runner so it can enforce auth
         this.database = new Database();
+        com.kluster.controller.AuthService auth = new com.kluster.controller.AuthService(this.database);
+        this.apiRunner = new APIRunner(auth);
 
         registerEndpoints();
         this.apiRunner.start();

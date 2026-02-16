@@ -49,7 +49,7 @@
             <artifactId>httpclient5</artifactId>
             <version>5.5.1</version>
         </dependency>
-        <!-- Jacson-->
+        <!-- Jackson-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

@@ -15,6 +15,7 @@ public class APIRunner {
     private ArrayList<APIEndpoint> deleteEndpoints = new ArrayList<>();
     private List<String> allowedOrigins = new ArrayList<>();
     private boolean allowAnyOrigin = false;
+    private AuthService authService;
 
     public APIRunner() {
         app = Javalin.create(config -> {
@@ -35,6 +36,11 @@ public class APIRunner {
                 }
             }
         }
+    }
+
+    public APIRunner(AuthService authService) {
+        this();
+        this.authService = authService;
     }
 
     private boolean isOriginAllowed(String origin) {
@@ -90,6 +96,9 @@ public class APIRunner {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 10, TimeUnit.SECONDS);
 
+                    // Authorization check
+                    if (!checkAuthorization(ctx, endPoint)) return;
+
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
                     ctx.status(501).result("Not Implemented: " + endPoint.getClass().getSimpleName());
@@ -104,6 +113,9 @@ public class APIRunner {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
 
+                    // Authorization check
+                    if (!checkAuthorization(ctx, endPoint)) return;
+
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
                     ctx.status(501).result("Not Implemented: " + endPoint.getClass().getSimpleName());
@@ -117,6 +129,9 @@ public class APIRunner {
             app.delete(endPoint.path(), ctx -> {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
+
+                    // Authorization check
+                    if (!checkAuthorization(ctx, endPoint)) return;
 
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
@@ -145,6 +160,38 @@ public class APIRunner {
 
         app.start(5000);
         return this;
+    }
+
+    private boolean checkAuthorization(io.javalin.http.Context ctx, APIEndpoint endPoint) {
+        // If no auth service configured, allow requests (backwards compatible)
+        if (this.authService == null) return true;
+
+        com.kluster.models.PersonnelRole[] roles = endPoint.allowedRoles();
+        // null => public endpoint
+        if (roles == null) return true;
+
+        // extract bearer token
+        String auth = ctx.header("Authorization");
+        if (auth == null || !auth.startsWith("Bearer ")) {
+            ctx.status(401).json(new ErrorResponse("Unauthorized", ctx.path(), 401));
+            return false;
+        }
+        String token = auth.substring(7).trim();
+        com.kluster.models.Personnel user = authService.validateToken(token);
+        if (user == null) {
+            ctx.status(401).json(new ErrorResponse("Unauthorized", ctx.path(), 401));
+            return false;
+        }
+
+        // roles length 0 => any authenticated user allowed
+        if (roles.length == 0) return true;
+
+        for (com.kluster.models.PersonnelRole r : roles) {
+            if (r == user.getRole()) return true;
+        }
+
+        ctx.status(403).json(new ErrorResponse("Forbidden", ctx.path(), 403));
+        return false;
     }
 
     public APIRunner stop() {

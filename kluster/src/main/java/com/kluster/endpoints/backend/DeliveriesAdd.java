@@ -27,7 +27,7 @@ public class DeliveriesAdd extends APIEndpoint {
             return;
         }
 
-        ctx.contentType("text/html").result(landingPage);
+        ctx.contentType("text/json").result(landingPage);
     }
 
 }
