@@ -15,37 +15,49 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.xml.crypto.Data;
+
 import java.security.SecureRandom;
 
 /**
- * Simple AuthService providing registration, authentication and token validation.
+ * Simple AuthService providing registration, authentication and token
+ * validation.
  *
  * Notes:
  * - This implementation uses an in-memory user store (`users`). Replace with
- *   a persistent repository (database) for production use.
+ * a persistent repository (database) for production use.
  * - JWT secret must be provided through the `JWT_SECRET` environment variable.
  */
 public class AuthService {
     private final Algorithm jwtAlg;
     private final JWTVerifier verifier;
-    private final Map<String, Personnel> users = new ConcurrentHashMap<>(); // In-memory user store (Replace with DB in production)
+    private final Map<String, Personnel> users = new ConcurrentHashMap<>(); // In-memory user store (Replace with DB in
+                                                                            // production)
     private final Map<String, RefreshTokenRecord> refreshStore = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public AuthService() {
+    private final Database database;
+
+    public AuthService(Database database) {
+        this.database = database;
+
         String secret = System.getenv("JWT_SECRET");
 
         if (secret == null || secret.trim().isEmpty()) {
-            System.err.println("\u001B[31mJWT_SECRET not set - falling back to development secret\\u001B[0m");
-            System.exit(500);
+            System.err.println("\u001B[31mJWT_SECRET not set - falling back to development secret\u001B[0m");
+            throw new IllegalStateException(
+                    "JWT_SECRET environment variable is required for AuthService to function. Set JWT_SECRET to a strong random value in production.");
         }
-        
+
         jwtAlg = Algorithm.HMAC256(secret);
         verifier = JWT.require(jwtAlg).build();
     }
 
     /**
-     * Registers a new user with the given details and plaintext password. The password is hashed before storage. 
+     * Registers a new user with the given details and plaintext password. The
+     * password is hashed before storage.
+     * 
      * @param id
      * @param name
      * @param rank
@@ -61,6 +73,7 @@ public class AuthService {
 
     /**
      * Find a user by their ID. Returns null if not found.
+     * 
      * @param id
      * @return
      */
@@ -69,12 +82,15 @@ public class AuthService {
     }
 
     /**
-     * Authenticate by id and password. Returns a signed JWT on success, or null on failure.
+     * Authenticate by id and password. Returns a signed JWT on success, or null on
+     * failure.
      */
     public String authenticate(String id, String plainPassword) {
         Personnel p = users.get(id);
-        if (p == null || p.getPasswordHash() == null) return null;
-        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash())) return null;
+        if (p == null || p.getPasswordHash() == null)
+            return null;
+        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash()))
+            return null;
         return createToken(p, 60);
     }
 
@@ -84,17 +100,22 @@ public class AuthService {
      */
     public AuthResponse authenticateWithRefresh(String id, String plainPassword, long accessMinutes, long refreshDays) {
         Personnel p = users.get(id);
-        if (p == null || p.getPasswordHash() == null) return null;
-        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash())) return null;
+        if (p == null || p.getPasswordHash() == null)
+            return null;
+        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash()))
+            return null;
 
         String access = createToken(p, accessMinutes);
         String refresh = issueRefreshToken(id, refreshDays);
         Instant now = Instant.now();
-        return new AuthResponse(access, refresh, Date.from(now.plus(accessMinutes, ChronoUnit.MINUTES)), Date.from(now.plus(refreshDays, ChronoUnit.DAYS)), p);
+        return new AuthResponse(access, refresh, Date.from(now.plus(accessMinutes, ChronoUnit.MINUTES)),
+                Date.from(now.plus(refreshDays, ChronoUnit.DAYS)), p);
     }
 
     /**
-     * Create a JWT token for the given user, valid for the specified number of minutes.
+     * Create a JWT token for the given user, valid for the specified number of
+     * minutes.
+     * 
      * @param user
      * @param minutesValid
      * @return
@@ -111,7 +132,8 @@ public class AuthService {
     }
 
     /**
-     * Issue an opaque refresh token for the given user. The token format is "{userId}:{random}".
+     * Issue an opaque refresh token for the given user. The token format is
+     * "{userId}:{random}".
      * The server stores only a bcrypt hash of the random portion and the expiry.
      */
     private String issueRefreshToken(String userId, long daysValid) {
@@ -127,31 +149,38 @@ public class AuthService {
     }
 
     /**
-     * Refresh an access token using a refresh token. On success, rotates the refresh token and
+     * Refresh an access token using a refresh token. On success, rotates the
+     * refresh token and
      * returns a new pair (access, refresh). Returns null on failure.
      */
     public AuthResponse refreshWithToken(String refreshToken, long newAccessMinutes, long refreshDays) {
-        if (refreshToken == null) return null;
+        if (refreshToken == null)
+            return null;
         int idx = refreshToken.indexOf(":");
-        if (idx <= 0) return null;
+        if (idx <= 0)
+            return null;
         String userId = refreshToken.substring(0, idx);
         String randomPart = refreshToken.substring(idx + 1);
 
         RefreshTokenRecord rec = refreshStore.get(userId);
-        if (rec == null) return null;
+        if (rec == null)
+            return null;
         if (rec.expiresAt.before(new Date())) {
             refreshStore.remove(userId);
             return null;
         }
-        if (!BCrypt.checkpw(randomPart, rec.hash)) return null;
+        if (!BCrypt.checkpw(randomPart, rec.hash))
+            return null;
 
         // rotate: issue new refresh token
         String newRefresh = issueRefreshToken(userId, refreshDays);
         Personnel p = users.get(userId);
-        if (p == null) return null;
+        if (p == null)
+            return null;
         String newAccess = createToken(p, newAccessMinutes);
         Instant now = Instant.now();
-        return new AuthResponse(newAccess, newRefresh, Date.from(now.plus(newAccessMinutes, ChronoUnit.MINUTES)), Date.from(now.plus(refreshDays, ChronoUnit.DAYS)), p);
+        return new AuthResponse(newAccess, newRefresh, Date.from(now.plus(newAccessMinutes, ChronoUnit.MINUTES)),
+                Date.from(now.plus(refreshDays, ChronoUnit.DAYS)), p);
     }
 
     /** Revoke refresh tokens for a user (logout). */
@@ -191,7 +220,8 @@ public class AuthService {
         public final Date refreshExpiresAt;
         public final Personnel user;
 
-        public AuthResponse(String accessToken, String refreshToken, Date accessExpiresAt, Date refreshExpiresAt, Personnel user) {
+        public AuthResponse(String accessToken, String refreshToken, Date accessExpiresAt, Date refreshExpiresAt,
+                Personnel user) {
             this.accessToken = accessToken;
             this.refreshToken = refreshToken;
             this.accessExpiresAt = accessExpiresAt;

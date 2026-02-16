@@ -1,27 +1,23 @@
 package com.kluster.models;
 
 public class Airplane {
-    private String id;
+    private int id;
     private String name;
     private String fuelType;
     private AirplaneStatus status; // e.g., "en route", "landing", "taking off"
     private String mission;
     private GpsCords gpsCords;
-    private double altitude;
-    private double speed;
 
-    public Airplane(String id, String name, String fuelType) {
+    public Airplane(int id, String name, String fuelType) {
         this.id = id;
         this.name = name;
         this.fuelType = fuelType;
         this.status = AirplaneStatus.STANDBY;
         this.mission = "None";
         this.gpsCords = new GpsCords(0.0, 0.0);
-        this.altitude = 0.0;
-        this.speed = 0.0;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
@@ -45,15 +41,7 @@ public class Airplane {
         return gpsCords;
     }
 
-    public double getAltitude() {
-        return altitude;
-    }
-
-    public double getSpeed() {
-        return speed;
-    }
-
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -75,13 +63,5 @@ public class Airplane {
 
     public void setGpsCords(GpsCords gpsCords) {
         this.gpsCords = gpsCords;
-    }
-
-    public void setAltitude(double altitude) {
-        this.altitude = altitude;
-    }
-
-    public void setSpeed(double speed) {
-        this.speed = speed;
     }
 }

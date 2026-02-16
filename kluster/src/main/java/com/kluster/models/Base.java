@@ -3,7 +3,7 @@ package com.kluster.models;
 public class Base {
     private GpsCords gpsCords;
     private String name;
-    private String id;
+    private int id;
     private BaseActivityStatus activityStatus;
     private IncidentReport currentIncident;
     private Airplane[] stationedAirplanes;
@@ -11,7 +11,7 @@ public class Base {
     private int airportCapacity;
     private int airportRunwayLength;
     private RunwayType runwayType;
-    private boolean runwayIsAHighway;
+    private boolean airportIsOperational;
     private DeliveryType[] possibleDeliveryTypes;
 
     public Base(GpsCords gpsCords) {
@@ -26,7 +26,7 @@ public class Base {
         return name;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
@@ -58,8 +58,8 @@ public class Base {
         return runwayType;
     }
 
-    public boolean isRunwayIsAHighway() {
-        return runwayIsAHighway;
+    public boolean isAirportIsOperational() {
+        return airportIsOperational;
     }
 
     public DeliveryType[] getPossibleDeliveryTypes() {
@@ -74,7 +74,7 @@ public class Base {
         this.name = name;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -106,8 +106,8 @@ public class Base {
         this.runwayType = runwayType;
     }
 
-    public void setRunwayIsAHighway(boolean runwayIsAHighway) {
-        this.runwayIsAHighway = runwayIsAHighway;
+    public void setAirportIsOperational(boolean airportIsOperational) {
+        this.airportIsOperational = airportIsOperational;
     }
 
     public void setPossibleDeliveryTypes(DeliveryType[] possibleDeliveryTypes) {

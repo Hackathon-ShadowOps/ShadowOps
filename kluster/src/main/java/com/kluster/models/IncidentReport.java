@@ -1,13 +1,13 @@
 package com.kluster.models;
 
 public class IncidentReport {
-    private String id;
+    private int id;
     private long timestamp;
     private int signedBy;
     private String description;
     private String category;
 
-    public IncidentReport(String id, String description, String category, int signedBy, long timestamp) {
+    public IncidentReport(int id, String description, String category, int signedBy, long timestamp) {
         this.id = id;
         this.description = description;
         this.category = category;
@@ -15,7 +15,7 @@ public class IncidentReport {
         this.timestamp = timestamp;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 

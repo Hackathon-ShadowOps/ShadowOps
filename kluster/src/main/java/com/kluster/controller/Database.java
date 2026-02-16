@@ -22,7 +22,18 @@ public class Database {
 
             connection = DriverManager.getConnection(env);
         } catch (SQLException e) {
-            System.out.print("Failed to connect to database!");
+            System.out.print("\u001B[31mFailed to connect to database: \u001B[0m");
+            e.printStackTrace(System.err);
+
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                System.err.println("\u001B[31mFailed to close database connection after failure: \u001B[0m");
+                ex.printStackTrace(System.err);
+            }
+
             System.exit(500);
         }
 
