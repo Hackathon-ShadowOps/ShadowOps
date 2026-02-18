@@ -1,5 +1,6 @@
 package com.kluster.controller;
 
+import com.kluster.Kluster;
 import com.kluster.models.Personnel;
 import com.kluster.models.PersonnelRole;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,18 +13,22 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AuthServiceTest {
+    private Kluster kluster;
+    private Database db;
+    private AuthService auth;
 
-    @BeforeAll
-    static void setupEnv() throws Exception {
-        // Set JWT_SECRET for tests via system property (no reflective env modification).
-        System.setProperty("JWT_SECRET", "test-secret-123456");
+    @org.junit.jupiter.api.BeforeEach
+    void setupEnv() throws Exception {
+        // Prevent the embedded server from starting during unit tests
+        System.setProperty("SKIP_API_RUNNER", "true");
+
+        this.kluster = new Kluster("/home/kactuz/Documents/Github/ShadowOps/.env"); // Load .env from project root
+        this.db = new Database(this.kluster);
+        this.auth = new AuthService(this.db, this.kluster);
     }
 
     @Test
     void testAuthenticateAndRefreshFlow() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
-
         auth.register(1, "Alice", "Captain", PersonnelRole.COMMANDER, "password123");
 
         AuthService.AuthResponse r = auth.authenticateWithRefresh(1, "password123", 10, 1);
@@ -54,8 +59,6 @@ public class AuthServiceTest {
 
     @Test
     void testAuthenticateInvalidPassword() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
         auth.register(2, "Bob", "Engineer", PersonnelRole.ENGINEER, "secret");
 
         String token = auth.authenticate(2, "wrong");
@@ -64,8 +67,7 @@ public class AuthServiceTest {
 
     @Test
     void testTamperedAccessTokenIsInvalid() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
+        AuthService auth = new AuthService(db, kluster);
         auth.register(3, "Charlie", "Pilot", PersonnelRole.PILOT, "pw");
 
         AuthService.AuthResponse r = auth.authenticateWithRefresh(3, "pw", 10, 1);
@@ -79,8 +81,6 @@ public class AuthServiceTest {
 
     @Test
     void testExpiredAccessTokenIsInvalid() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
         auth.register(4, "Delta", "Lieutenant", PersonnelRole.ENGINEER, "pw2");
 
         Personnel user = auth.findById(4);
@@ -94,8 +94,6 @@ public class AuthServiceTest {
 
     @Test
     void testDifferentSecretTokenIsInvalid() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
         auth.register(5, "Echo", "Sergeant", PersonnelRole.COMMANDER, "pw3");
 
         // create token with a different secret so signature won't match
@@ -112,8 +110,6 @@ public class AuthServiceTest {
 
     @Test
     void testTamperedRefreshTokenIsRejected() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
         auth.register(6, "Foxtrot", "Ensign", PersonnelRole.ENGINEER, "pw4");
 
         AuthService.AuthResponse r = auth.authenticateWithRefresh(6, "pw4", 10, 1);
@@ -127,9 +123,6 @@ public class AuthServiceTest {
 
     @Test
     void testRoleAuthorizationAllowedAndDenied() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
-
         // Commander should be allowed to perform commander-only action
         auth.register(10, "Leader", "Rank", PersonnelRole.COMMANDER, "leadpw");
         auth.register(11, "Worker", "Rank", PersonnelRole.ENGINEER, "workpw");
@@ -152,8 +145,6 @@ public class AuthServiceTest {
 
     @Test
     void testInvalidAccessTokenRequiresReauth() {
-        Database db = new Database();
-        AuthService auth = new AuthService(db);
         auth.register(20, "Gamma", "Role", PersonnelRole.PILOT, "pass");
 
         AuthService.AuthResponse r = auth.authenticateWithRefresh(20, "pass", 10, 1);

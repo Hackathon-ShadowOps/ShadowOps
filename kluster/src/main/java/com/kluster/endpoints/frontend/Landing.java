@@ -3,6 +3,7 @@ package com.kluster.endpoints.frontend;
 import com.kluster.Kluster;
 import com.kluster.controller.APIEndpoint;
 import com.kluster.controller.HTMLServe;
+import com.kluster.models.PersonnelRole;
 
 import io.javalin.http.Context;
 
@@ -30,4 +31,8 @@ public class Landing extends APIEndpoint {
         ctx.contentType("text/html").result(landingPage);
     }
 
+    @Override
+    public PersonnelRole[] allowedRoles() {
+        return null; // public endpoint, no auth required
+    }
 }

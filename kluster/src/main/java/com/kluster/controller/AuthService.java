@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import com.kluster.Kluster;
 import com.kluster.models.Personnel;
 import com.kluster.models.PersonnelRole;
 import org.mindrot.jbcrypt.BCrypt;
@@ -38,16 +39,14 @@ public class AuthService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     private final Database database;
+    private final Kluster kluster;
 
-    public AuthService(Database database) {
+    public AuthService(Database database, Kluster kluster) {
         this.database = database;
+        this.kluster = kluster;
 
         // Prefer environment variable, fall back to system property for testability.
-        String secret = System.getenv("JWT_SECRET");
-        if (secret == null || secret.trim().isEmpty()) {
-            secret = System.getProperty("JWT_SECRET");
-        }
-
+        String secret = kluster.env().get("JWT_SECRET");
         if (secret == null || secret.trim().isEmpty()) {
             System.err.println("\u001B[31mJWT_SECRET not set - falling back to development secret\u001B[0m");
             throw new IllegalStateException(
