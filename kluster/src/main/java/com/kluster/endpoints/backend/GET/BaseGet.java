@@ -1,4 +1,4 @@
-package com.kluster.endpoints.backend;
+package com.kluster.endpoints.backend.GET;
 
 import com.kluster.Kluster;
 import com.kluster.controller.APIEndpoint;
@@ -6,16 +6,16 @@ import com.kluster.controller.HTMLServe;
 
 import io.javalin.http.Context;
 
-public class PersonnelAdd extends APIEndpoint {
+public class BaseGet extends APIEndpoint {
     private final Kluster kluster;
 
-    public PersonnelAdd(Kluster kluster) {
+    public BaseGet(Kluster kluster) {
         this.kluster = kluster;
     }
 
     @Override
     public String path() {
-        return "/api/v1/{baseId}/personnel/add";
+        return "/api/v1/base";
     }
 
     @Override

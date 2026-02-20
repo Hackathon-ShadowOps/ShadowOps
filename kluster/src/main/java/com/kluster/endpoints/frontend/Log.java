@@ -15,11 +15,16 @@ public class Log extends APIEndpoint {
 
     @Override
     public String path() {
-        return "/{baseId}/logs";
+        return "/logs";
     }
 
     @Override
     public void handle(Context ctx) throws UnsupportedOperationException {
+        String baseId = ctx.queryParam("baseId");
+        if (baseId == null || baseId.isEmpty()) {
+            ctx.status(400).result("Missing required query parameter: baseId");
+            return;
+        }
         String landingPage = HTMLServe.getPage("Landing");
 
         if (landingPage == null) {

@@ -1,4 +1,4 @@
-package com.kluster.endpoints.backend;
+package com.kluster.endpoints.backend.GET;
 
 import com.kluster.Kluster;
 import com.kluster.controller.APIEndpoint;
@@ -6,20 +6,26 @@ import com.kluster.controller.HTMLServe;
 
 import io.javalin.http.Context;
 
-public class PersonnelRemove extends APIEndpoint {
+public class DeliveriesGet extends APIEndpoint {
     private final Kluster kluster;
 
-    public PersonnelRemove(Kluster kluster) {
+    public DeliveriesGet(Kluster kluster) {
         this.kluster = kluster;
     }
 
     @Override
     public String path() {
-        return "/api/v1/{baseId}/personnel";
+        return "/api/v1/deliveries";
     }
 
     @Override
     public void handle(Context ctx) throws UnsupportedOperationException {
+        String baseId = ctx.queryParam("baseId");
+        
+        if (baseId == null || baseId.isEmpty()) {
+            ctx.status(400).result("Missing required query parameter: baseId");
+            return;
+        }
         String landingPage = HTMLServe.getPage("Landing");
 
         if (landingPage == null) {

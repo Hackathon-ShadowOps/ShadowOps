@@ -17,8 +17,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.xml.crypto.Data;
-
 import java.security.SecureRandom;
 
 /**
@@ -68,6 +66,16 @@ public class AuthService {
      * @param plainPassword
      */
     public void register(int id, String name, String rank, PersonnelRole role, String plainPassword) {
+        if (id <= 0 || name == null || name.trim().isEmpty() || rank == null || rank.trim().isEmpty() || role == null
+                || plainPassword == null || plainPassword.isEmpty()) {
+            throw new IllegalArgumentException("Input cannot be null, empty, or invalid");
+        }
+
+        if (!Security.isSafeForSQL(name) || !Security.isSafeForSQL(rank)
+                || role != null && !Security.isSafeForSQL(role.name())) {
+            throw new IllegalArgumentException("Input contains unsafe characters");
+        }
+
         Personnel p = new Personnel(id, name, rank, role);
         String hash = BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
         p.setPasswordHash(hash);
@@ -89,11 +97,28 @@ public class AuthService {
      * failure.
      */
     public String authenticate(int id, String plainPassword) {
+        if (plainPassword == null || plainPassword.isEmpty()) {
+            throw new IllegalArgumentException("Input cannot be null, empty or invalid");
+        }
+
+        if (plainPassword.length() > 256) {
+            throw new IllegalArgumentException("Input is too long");
+        }
+
+        if (!Security.isSafeForSQL(plainPassword)) {
+            throw new IllegalArgumentException("Input contains unsafe characters");
+        }
+
         Personnel p = users.get(id);
-        if (p == null || p.getPasswordHash() == null)
+
+        if (p == null || p.getPasswordHash() == null) {
             return null;
-        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash()))
+        }
+
+        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash())) {
             return null;
+        }
+
         return createToken(p, 60);
     }
 

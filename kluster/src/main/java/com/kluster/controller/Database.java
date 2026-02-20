@@ -50,7 +50,7 @@ public class Database {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT," +
                 "role INTEGER," +
-                "isActive INTEGER," +
+                "isActive BOOLEAN," +
                 "passwordHash TEXT" +
                 ");";
 
@@ -89,7 +89,7 @@ public class Database {
                 "airportCapacity INTEGER," +
                 "airportRunwayLength REAL," +
                 "runwayType INTEGER," +
-                "airportIsOperational INTEGER," +
+                "airportIsOperational BOOLEAN," +
                 "FOREIGN KEY (incidentReport) REFERENCES IncidentReport(id)" +
                 ");";
 
@@ -107,10 +107,6 @@ public class Database {
                 "FOREIGN KEY (personnelId) REFERENCES Personnel(id)" +
                 ");";
 
-        /*
-         * deliveryType is stored as an integer matching DeliveryType enum codes; there
-         * is no Delivery table yet
-         */
         String createBaseDeliveryPossibilitiesTable = "CREATE TABLE IF NOT EXISTS BaseDeliveryPossibilities (" +
                 "baseId INTEGER," +
                 "deliveryType INTEGER," +
@@ -239,7 +235,7 @@ public class Database {
                 "INSERT INTO Personnel (name, role, isActive, passwordHash) VALUES ('%s', %d, %d, '%s');",
                 name.replace("'", "''"),
                 role,
-                isActive ? 1 : 0,
+                isActive,
                 passwordHash.replace("'", "''")));
 
         sqlList.add(logUsage(signedByPersonnelId, "addPersonnel", name));
@@ -264,7 +260,7 @@ public class Database {
                 airportCapacity,
                 airportRunwayLength,
                 runwayType,
-                airportIsOperational ? 1 : 0));
+                airportIsOperational));
 
         sqlList.add(logUsage(signedByPersonnelId, "addBase", name));
 

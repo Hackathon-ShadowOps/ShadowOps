@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.kluster.controller.AuthServiceTest" time="6.131" tests="8" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.kluster.controller.AuthServiceTest" time="6.157" tests="8" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -14,7 +14,7 @@
     <property name="user.country" value="US"/>
     <property name="SKIP_API_RUNNER" value="true"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-21-openjdk-amd64/lib"/>
-    <property name="sun.java.command" value="/home/kactuz/Documents/Github/ShadowOps/kluster/target/surefire/surefirebooter-20260218200041398_3.jar /home/kactuz/Documents/Github/ShadowOps/kluster/target/surefire 2026-02-18T20-00-41_283-jvmRun1 surefire-20260218200041398_1tmp surefire_0-20260218200041398_2tmp"/>
+    <property name="sun.java.command" value="/home/kactuz/Documents/Github/ShadowOps/kluster/target/surefire/surefirebooter-20260220092539419_3.jar /home/kactuz/Documents/Github/ShadowOps/kluster/target/surefire 2026-02-20T09-25-39_297-jvmRun1 surefire-20260220092539419_1tmp surefire_0-20260220092539419_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/kactuz/Documents/Github/ShadowOps/kluster/target/test-classes:/home/kactuz/Documents/Github/ShadowOps/kluster/target/classes:/home/kactuz/.m2/repository/io/javalin/javalin/6.7.0/javalin-6.7.0.jar:/home/kactuz/.m2/repository/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-server/11.0.25/jetty-server-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-http/11.0.25/jetty-http-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-util/11.0.25/jetty-util-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-io/11.0.25/jetty-io-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/toolchain/jetty-jakarta-servlet-api/5.0.2/jetty-jakarta-servlet-api-5.0.2.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-server/11.0.25/websocket-jetty-server-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-servlet/11.0.25/jetty-servlet-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-security/11.0.25/jetty-security-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-webapp/11.0.25/jetty-webapp-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/jetty-xml/11.0.25/jetty-xml-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-api/11.0.25/websocket-jetty-api-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/websocket/websocket-jetty-common/11.0.25/websocket-jetty-common-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/websocket/websocket-core-common/11.0.25/websocket-core-common-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/websocket/websocket-servlet/11.0.25/websocket-servlet-11.0.25.jar:/home/kactuz/.m2/repository/org/eclipse/jetty/websocket/websocket-core-server/11.0.25/websocket-core-server-11.0.25.jar:/home/kactuz/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.25/kotlin-stdlib-jdk8-1.9.25.jar:/home/kactuz/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.9.25/kotlin-stdlib-1.9.25.jar:/home/kactuz/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar:/home/kactuz/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.9.25/kotlin-stdlib-jdk7-1.9.25.jar:/home/kactuz/.m2/repository/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar:/home/kactuz/.m2/repository/com/google/errorprone/error_prone_annotations/2.41.0/error_prone_annotations-2.41.0.jar:/home/kactuz/.m2/repository/org/xerial/sqlite-jdbc/3.51.1.0/sqlite-jdbc-3.51.1.0.jar:/home/kactuz/.m2/repository/io/github/cdimascio/dotenv-java/3.2.0/dotenv-java-3.2.0.jar:/home/kactuz/.m2/repository/org/slf4j/slf4j-simple/2.0.16/slf4j-simple-2.0.16.jar:/home/kactuz/.m2/repository/org/apache/httpcomponents/client5/httpclient5/5.5.1/httpclient5-5.5.1.jar:/home/kactuz/.m2/repository/org/apache/httpcomponents/core5/httpcore5/5.3.6/httpcore5-5.3.6.jar:/home/kactuz/.m2/repository/org/apache/httpcomponents/core5/httpcore5-h2/5.3.6/httpcore5-h2-5.3.6.jar:/home/kactuz/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.jar:/home/kactuz/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.17.2/jackson-annotations-2.17.2.jar:/home/kactuz/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.17.2/jackson-core-2.17.2.jar:/home/kactuz/.m2/repository/com/auth0/java-jwt/4.4.0/java-jwt-4.4.0.jar:/home/kactuz/.m2/repository/org/mindrot/jbcrypt/0.4/jbcrypt-0.4.jar:/home/kactuz/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.0/junit-jupiter-5.10.0.jar:/home/kactuz/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.0/junit-jupiter-api-5.10.0.jar:/home/kactuz/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/kactuz/.m2/repository/org/junit/platform/junit-platform-commons/1.10.0/junit-platform-commons-1.10.0.jar:/home/kactuz/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/kactuz/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.0/junit-jupiter-params-5.10.0.jar:/home/kactuz/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.0/junit-jupiter-engine-5.10.0.jar:/home/kactuz/.m2/repository/org/junit/platform/junit-platform-engine/1.10.0/junit-platform-engine-1.10.0.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -29,7 +29,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/home/kactuz/Documents/Github/ShadowOps/kluster/target/surefire/surefirebooter-20260218200041398_3.jar"/>
+    <property name="surefire.real.class.path" value="/home/kactuz/Documents/Github/ShadowOps/kluster/target/surefire/surefirebooter-20260220092539419_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.10+7-Ubuntu-124.04"/>
     <property name="user.name" value="kactuz"/>
@@ -56,21 +56,21 @@
     <property name="java.class.version" value="65.0"/>
     <property name="argLine" value="--add-opens=java.base/java.util=ALL-UNNAMED"/>
   </properties>
-  <testcase name="testAuthenticateAndRefreshFlow" classname="com.kluster.controller.AuthServiceTest" time="1.627">
+  <testcase name="testAuthenticateAndRefreshFlow" classname="com.kluster.controller.AuthServiceTest" time="1.626">
     <system-out><![CDATA[&amp#27;[34mStarting Kluster...&amp#27;[0m
 &amp#27;[34mLoading environment from path: /home/kactuz/Documents/Github/ShadowOps/.env&amp#27;[0m
 &amp#27;[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.&amp#27;[0m
 Skipping APIRunner.start() due to SKIP_API_RUNNER=true
 ]]></system-out>
   </testcase>
-  <testcase name="testTamperedAccessTokenIsInvalid" classname="com.kluster.controller.AuthServiceTest" time="0.643">
+  <testcase name="testTamperedAccessTokenIsInvalid" classname="com.kluster.controller.AuthServiceTest" time="0.65">
     <system-out><![CDATA[&amp#27;[34mStarting Kluster...&amp#27;[0m
 &amp#27;[34mLoading environment from path: /home/kactuz/Documents/Github/ShadowOps/.env&amp#27;[0m
 &amp#27;[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.&amp#27;[0m
 Skipping APIRunner.start() due to SKIP_API_RUNNER=true
 ]]></system-out>
   </testcase>
-  <testcase name="testDifferentSecretTokenIsInvalid" classname="com.kluster.controller.AuthServiceTest" time="0.217">
+  <testcase name="testDifferentSecretTokenIsInvalid" classname="com.kluster.controller.AuthServiceTest" time="0.22">
     <system-out><![CDATA[&amp#27;[34mStarting Kluster...&amp#27;[0m
 &amp#27;[34mLoading environment from path: /home/kactuz/Documents/Github/ShadowOps/.env&amp#27;[0m
 &amp#27;[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.&amp#27;[0m
@@ -84,28 +84,28 @@ Skipping APIRunner.start() due to SKIP_API_RUNNER=true
 Skipping APIRunner.start() due to SKIP_API_RUNNER=true
 ]]></system-out>
   </testcase>
-  <testcase name="testTamperedRefreshTokenIsRejected" classname="com.kluster.controller.AuthServiceTest" time="0.85">
+  <testcase name="testTamperedRefreshTokenIsRejected" classname="com.kluster.controller.AuthServiceTest" time="0.854">
     <system-out><![CDATA[&amp#27;[34mStarting Kluster...&amp#27;[0m
 &amp#27;[34mLoading environment from path: /home/kactuz/Documents/Github/ShadowOps/.env&amp#27;[0m
 &amp#27;[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.&amp#27;[0m
 Skipping APIRunner.start() due to SKIP_API_RUNNER=true
 ]]></system-out>
   </testcase>
-  <testcase name="testAuthenticateInvalidPassword" classname="com.kluster.controller.AuthServiceTest" time="0.428">
+  <testcase name="testAuthenticateInvalidPassword" classname="com.kluster.controller.AuthServiceTest" time="0.431">
     <system-out><![CDATA[&amp#27;[34mStarting Kluster...&amp#27;[0m
 &amp#27;[34mLoading environment from path: /home/kactuz/Documents/Github/ShadowOps/.env&amp#27;[0m
 &amp#27;[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.&amp#27;[0m
 Skipping APIRunner.start() due to SKIP_API_RUNNER=true
 ]]></system-out>
   </testcase>
-  <testcase name="testInvalidAccessTokenRequiresReauth" classname="com.kluster.controller.AuthServiceTest" time="0.853">
+  <testcase name="testInvalidAccessTokenRequiresReauth" classname="com.kluster.controller.AuthServiceTest" time="0.858">
     <system-out><![CDATA[&amp#27;[34mStarting Kluster...&amp#27;[0m
 &amp#27;[34mLoading environment from path: /home/kactuz/Documents/Github/ShadowOps/.env&amp#27;[0m
 &amp#27;[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.&amp#27;[0m
 Skipping APIRunner.start() due to SKIP_API_RUNNER=true
 ]]></system-out>
   </testcase>
-  <testcase name="testRoleAuthorizationAllowedAndDenied" classname="com.kluster.controller.AuthServiceTest" time="1.275">
+  <testcase name="testRoleAuthorizationAllowedAndDenied" classname="com.kluster.controller.AuthServiceTest" time="1.281">
     <system-out><![CDATA[&amp#27;[34mStarting Kluster...&amp#27;[0m
 &amp#27;[34mLoading environment from path: /home/kactuz/Documents/Github/ShadowOps/.env&amp#27;[0m
 &amp#27;[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.&amp#27;[0m

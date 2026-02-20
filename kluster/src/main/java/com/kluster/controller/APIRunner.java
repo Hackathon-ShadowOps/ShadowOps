@@ -5,7 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.kluster.models.Personnel;
+import com.kluster.models.PersonnelRole;
+
 import io.javalin.Javalin;
+import io.javalin.http.Context;
 import io.javalin.http.util.NaiveRateLimit;
 
 public class APIRunner {
@@ -26,7 +30,8 @@ public class APIRunner {
         String env = System.getenv("CORS_ALLOWED_ORIGINS");
         if (env == null || env.trim().isEmpty()) {
             allowAnyOrigin = true;
-            System.out.println("\u001B[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.\u001B[0m");
+            System.out.println(
+                    "\u001B[31mWARNING: CORS_ALLOWED_ORIGINS not set. Allowing any origin (development default). Set CORS_ALLOWED_ORIGINS to restrict origins.\u001B[0m");
         } else {
             allowedOrigins = Arrays.asList(env.split("\\s*,\\s*"));
             for (String o : allowedOrigins) {
@@ -44,11 +49,15 @@ public class APIRunner {
     }
 
     private boolean isOriginAllowed(String origin) {
-        if (allowAnyOrigin) return true;
-        if (origin == null) return false;
+        if (allowAnyOrigin)
+            return true;
+        if (origin == null)
+            return false;
         for (String allowed : allowedOrigins) {
-            if (allowed == null) continue;
-            if (allowed.equalsIgnoreCase(origin) || allowed.equals("*")) return true;
+            if (allowed == null)
+                continue;
+            if (allowed.equalsIgnoreCase(origin) || allowed.equals("*"))
+                return true;
         }
         return false;
     }
@@ -96,8 +105,12 @@ public class APIRunner {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 10, TimeUnit.SECONDS);
 
+                    System.out.println("Handling GET " + endPoint.path() + " - Allowed Roles: "
+                            + Arrays.toString(endPoint.allowedRoles()));
+
                     // Authorization check
-                    if (!checkAuthorization(ctx, endPoint)) return;
+                    if (!checkAuthorization(ctx, endPoint))
+                        return;
 
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
@@ -113,8 +126,12 @@ public class APIRunner {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
 
+                    System.out.println("Handling GET " + endPoint.path() + " - Allowed Roles: "
+                            + Arrays.toString(endPoint.allowedRoles()));
+
                     // Authorization check
-                    if (!checkAuthorization(ctx, endPoint)) return;
+                    if (!checkAuthorization(ctx, endPoint))
+                        return;
 
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
@@ -130,8 +147,12 @@ public class APIRunner {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
 
+                    System.out.println("Handling GET " + endPoint.path() + " - Allowed Roles: "
+                            + Arrays.toString(endPoint.allowedRoles()));
+
                     // Authorization check
-                    if (!checkAuthorization(ctx, endPoint)) return;
+                    if (!checkAuthorization(ctx, endPoint))
+                        return;
 
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
@@ -162,32 +183,43 @@ public class APIRunner {
         return this;
     }
 
-    private boolean checkAuthorization(io.javalin.http.Context ctx, APIEndpoint endPoint) {
-        // If no auth service configured, allow requests (backwards compatible)
-        if (this.authService == null) return true;
+    private boolean checkAuthorization(Context ctx, APIEndpoint endPoint) {
+        PersonnelRole[] roles = endPoint.allowedRoles();
 
-        com.kluster.models.PersonnelRole[] roles = endPoint.allowedRoles();
         // null => public endpoint
-        if (roles == null) return true;
+        if (roles == null) {
+            return true;
+        }
 
         // extract bearer token
         String auth = ctx.header("Authorization");
+
         if (auth == null || !auth.startsWith("Bearer ")) {
-            ctx.status(401).json(new ErrorResponse("Unauthorized", ctx.path(), 401));
+            System.out.print("No bearer token provided. Authorization header: " + auth);
+
+            ctx.status(401).json(new ErrorResponse("Unauthorized No Bearer Token", ctx.path(), 401));
             return false;
         }
+
         String token = auth.substring(7).trim();
-        com.kluster.models.Personnel user = authService.validateToken(token);
+        Personnel user = authService.validateToken(token);
+
         if (user == null) {
-            ctx.status(401).json(new ErrorResponse("Unauthorized", ctx.path(), 401));
+            System.out.print("Invalid token: " + token);
+            ctx.status(401).json(new ErrorResponse("Unauthorized Invalid Token", ctx.path(), 401));
             return false;
+        } else {
+            System.out.println("Authenticated user: " + user.getName() + " with role " + user.getRole());
         }
 
         // roles length 0 => any authenticated user allowed
-        if (roles.length == 0) return true;
+        if (roles.length == 0) {
+            return true;
+        }
 
-        for (com.kluster.models.PersonnelRole r : roles) {
-            if (r == user.getRole()) return true;
+        for (PersonnelRole r : roles) {
+            if (r == user.getRole())
+                return true;
         }
 
         ctx.status(403).json(new ErrorResponse("Forbidden", ctx.path(), 403));

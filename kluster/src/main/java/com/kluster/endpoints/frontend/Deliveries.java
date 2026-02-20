@@ -15,11 +15,17 @@ public class Deliveries extends APIEndpoint {
 
     @Override
     public String path() {
-        return "/{baseId}/deliveries";
+        return "/deliveries";
     }
 
     @Override
     public void handle(Context ctx) throws UnsupportedOperationException {
+        String baseId = ctx.queryParam("baseId");
+        
+        if (baseId == null || baseId.isEmpty()) {
+            ctx.status(400).result("Missing required query parameter: baseId");
+            return;
+        }
         String landingPage = HTMLServe.getPage("Landing");
 
         if (landingPage == null) {
