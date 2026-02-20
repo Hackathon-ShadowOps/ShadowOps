@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 import com.google.gson.Gson;
 import com.kluster.Kluster;
+import com.kluster.models.Personnel;
+import com.kluster.models.PersonnelRole;
 
 public class Database {
     private Gson gson = new Gson();
@@ -49,6 +51,7 @@ public class Database {
         String createPersonnelTable = "CREATE TABLE IF NOT EXISTS Personnel (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT," +
+                "rank INTEGER," +
                 "role INTEGER," +
                 "isActive BOOLEAN," +
                 "passwordHash TEXT" +
@@ -169,11 +172,12 @@ public class Database {
         }
     }
 
-    private String logUsage(int personnelId, String action, String details) throws SQLException {
+    private String logUsage(Integer personnelId, String action, String details) throws SQLException {
+        String pidValue = (personnelId == null || personnelId <= 0) ? "NULL" : String.valueOf(personnelId);
         return String.format(
-                "INSERT INTO Log (timestamp, personnelId, action, details) VALUES (%d, %d, '%s', '%s');",
+                "INSERT INTO Log (timestamp, personnelId, action, details) VALUES (%d, %s, '%s', '%s');",
                 System.currentTimeMillis(),
-                personnelId,
+                pidValue,
                 action.replace("'", "''"),
                 details.replace("'", "''"));
     }
@@ -227,15 +231,17 @@ public class Database {
         }
     }
 
-    public void addPersonnel(String name, int role, boolean isActive, String passwordHash, int signedByPersonnelId)
+    public void addPersonnel(String name, int rank, int role, boolean isActive, String passwordHash,
+            int signedByPersonnelId)
             throws SQLException {
         ArrayList<String> sqlList = new ArrayList<>();
 
         sqlList.add(String.format(
-                "INSERT INTO Personnel (name, role, isActive, passwordHash) VALUES ('%s', %d, %d, '%s');",
+                "INSERT INTO Personnel (name, rank, role, isActive, passwordHash) VALUES ('%s', %d, %d, %d, '%s');",
                 name.replace("'", "''"),
+                rank,
                 role,
-                isActive,
+                isActive ? 1 : 0,
                 passwordHash.replace("'", "''")));
 
         sqlList.add(logUsage(signedByPersonnelId, "addPersonnel", name));
@@ -286,6 +292,25 @@ public class Database {
         executeUpdate(sqlList);
     }
 
-    // TODO: Implement database operations (CRUD) for Personnel, Missions, Logs,
-    // etc.
+    public Personnel getPersonnelById(int id) {
+        String sql = String.format("SELECT * FROM Personnel WHERE id = %d;", id);
+        try (Statement stmt = connection.createStatement()) {
+            var rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                Personnel p = new Personnel(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getInt("rank"),
+                        PersonnelRole.values()[rs.getInt("role")],
+                        null);
+                p.setPasswordHash(rs.getString("passwordHash"));
+                return p;
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to retrieve personnel by ID: " + e.getMessage());
+            return null;
+        }
+    }
 }

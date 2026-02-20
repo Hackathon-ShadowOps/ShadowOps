@@ -10,6 +10,7 @@ import com.kluster.models.PersonnelRole;
 import io.javalin.http.Context;
 
 import java.net.InetAddress;
+import java.sql.SQLException;
 
 public class AuthRegisterHost extends APIEndpoint {
     private final Kluster kluster;
@@ -41,8 +42,19 @@ public class AuthRegisterHost extends APIEndpoint {
             }
 
             RegisterRequest req = gson.fromJson(ctx.body(), RegisterRequest.class);
-            if (req == null || req.id <= 0 || req.name == null || req.name.isEmpty() || req.rank == null
-                    || req.rank.isEmpty() || req.role == null || req.password == null || req.password.isEmpty()) {
+            if (req == null || req.id <= 0 ||
+                    req.name == null || req.name.isEmpty() ||
+                    req.rank < 0 ||
+                    req.role == null || req.password == null ||
+                    req.password.isEmpty()) {
+                System.out.println("Invalid registration attempt: " + ctx.body());
+                System.out.println(
+                        "Name: " + (req.name == null ? "null" : req.name.isEmpty() ? "empty" : "valid") +
+                                " Rank: " + (req.rank < 0 ? "invalid" : "valid") +
+                                " Role: " + (req.role == null ? "null" : req.role) +
+                                " Password: "
+                                + (req.password == null ? "null" : req.password.isEmpty() ? "empty" : "valid"));
+
                 ctx.status(400).json(new ErrorResponse("Invalid request", ctx.path(), 400));
                 return;
             }
@@ -57,7 +69,7 @@ public class AuthRegisterHost extends APIEndpoint {
 
             AuthService auth = kluster.getAuthService();
             try {
-                auth.register(req.id, req.name, req.rank, role, req.password);
+                auth.register(req.id, req.name, req.rank, role, req.password, 0);
             } catch (IllegalArgumentException iae) {
                 ctx.status(400).json(new ErrorResponse("Invalid input: " + iae.getMessage(), ctx.path(), 400));
                 return;
@@ -79,7 +91,7 @@ public class AuthRegisterHost extends APIEndpoint {
     private static class RegisterRequest {
         public int id;
         public String name;
-        public String rank;
+        public int rank;
         public String role; // must match PersonnelRole name
         public String password;
     }

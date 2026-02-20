@@ -7,18 +7,21 @@ public class Personnel {
     private boolean isActive;
     private String passwordHash;
     private Permission[] permissions;
+    private int rank;
 
-    public Personnel(int id, String name, String rank, PersonnelRole role) {
+    public Personnel(int id, String name, int rank, PersonnelRole role) {
         this.id = id;
         this.name = name;
         this.role = role;
         this.isActive = true;
+        this.rank = rank;
     }
 
-    public Personnel(int id, String name, String rank, PersonnelRole role, Permission[] permissions) {
+    public Personnel(int id, String name, int rank, PersonnelRole role, Permission[] permissions) {
         this.id = id;
         this.name = name;
         this.role = role;
+        this.rank = rank;
         this.permissions = permissions;
         this.isActive = true;
     }
@@ -50,6 +53,10 @@ public class Personnel {
         return role;
     }
 
+    public int getRank() {
+        return rank;
+    }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -72,5 +79,9 @@ public class Personnel {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
     }
 }

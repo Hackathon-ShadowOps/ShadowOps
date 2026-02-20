@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.security.SecureRandom;
+import java.sql.SQLException;
 
 /**
  * Simple AuthService providing registration, authentication and token
@@ -31,8 +32,6 @@ import java.security.SecureRandom;
 public class AuthService {
     private final Algorithm jwtAlg;
     private final JWTVerifier verifier;
-    private final Map<Integer, Personnel> users = new ConcurrentHashMap<>(); // In-memory user store (Replace with DB in
-                                                                             // production)
     private final Map<Integer, RefreshTokenRecord> refreshStore = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -65,31 +64,26 @@ public class AuthService {
      * @param role
      * @param plainPassword
      */
-    public void register(int id, String name, String rank, PersonnelRole role, String plainPassword) {
-        if (id <= 0 || name == null || name.trim().isEmpty() || rank == null || rank.trim().isEmpty() || role == null
+    public void register(int id, String name, int rank, PersonnelRole role, String plainPassword,
+            int signedByPersonnelId) {
+        if (id <= 0 || name == null || name.trim().isEmpty() || rank < 0 || role == null
                 || plainPassword == null || plainPassword.isEmpty()) {
             throw new IllegalArgumentException("Input cannot be null, empty, or invalid");
         }
 
-        if (!Security.isSafeForSQL(name) || !Security.isSafeForSQL(rank)
-                || role != null && !Security.isSafeForSQL(role.name())) {
+        if (!Security.isSafeForSQL(name) || role != null && !Security.isSafeForSQL(role.name())) {
             throw new IllegalArgumentException("Input contains unsafe characters");
         }
 
-        Personnel p = new Personnel(id, name, rank, role);
         String hash = BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
-        p.setPasswordHash(hash);
-        users.put(id, p);
-    }
 
-    /**
-     * Find a user by their ID. Returns null if not found.
-     * 
-     * @param id
-     * @return
-     */
-    public Personnel findById(int id) {
-        return users.get(id);
+        try {
+            database.addPersonnel(name, rank, role.getCode(), true, hash, signedByPersonnelId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to register user: " + e.getMessage());
+        }
+
     }
 
     /**
@@ -109,7 +103,7 @@ public class AuthService {
             throw new IllegalArgumentException("Input contains unsafe characters");
         }
 
-        Personnel p = users.get(id);
+        Personnel p = database.getPersonnelById(id);
 
         if (p == null || p.getPasswordHash() == null) {
             return null;
@@ -127,17 +121,24 @@ public class AuthService {
      * Access tokens are short-lived; refresh tokens are opaque and rotated on use.
      */
     public AuthResponse authenticateWithRefresh(int id, String plainPassword, long accessMinutes, long refreshDays) {
-        Personnel p = users.get(id);
-        if (p == null || p.getPasswordHash() == null)
+        Personnel p = database.getPersonnelById(id);
+        if (p == null || p.getPasswordHash() == null) {
             return null;
-        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash()))
+        }
+
+        if (!BCrypt.checkpw(plainPassword, p.getPasswordHash())) {
             return null;
+        }
 
         String access = createToken(p, accessMinutes);
         String refresh = issueRefreshToken(id, refreshDays);
         Instant now = Instant.now();
-        return new AuthResponse(access, refresh, Date.from(now.plus(accessMinutes, ChronoUnit.MINUTES)),
-                Date.from(now.plus(refreshDays, ChronoUnit.DAYS)), p);
+
+        return new AuthResponse(access,
+                refresh,
+                Date.from(now.plus(accessMinutes, ChronoUnit.MINUTES)),
+                Date.from(now.plus(refreshDays, ChronoUnit.DAYS)),
+                p);
     }
 
     /**
@@ -202,7 +203,7 @@ public class AuthService {
 
         // rotate: issue new refresh token
         String newRefresh = issueRefreshToken(userId, refreshDays);
-        Personnel p = users.get(userId);
+        Personnel p = database.getPersonnelById(userId);
         if (p == null)
             return null;
         String newAccess = createToken(p, newAccessMinutes);
@@ -235,7 +236,7 @@ public class AuthService {
             String id = jwt.getSubject();
             try {
                 int userId = Integer.parseInt(id);
-                return users.get(userId);
+                return database.getPersonnelById(userId);
             } catch (NumberFormatException nfe) {
                 return null;
             }

@@ -1,4 +1,76 @@
 -------------------------------------------------------------------------------
 Test set: com.kluster.controller.AuthServiceTest
 -------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.157 s - in com.kluster.controller.AuthServiceTest
+Tests run: 8, Failures: 0, Errors: 8, Skipped: 0, Time elapsed: 2.096 s <<< FAILURE! - in com.kluster.controller.AuthServiceTest
+com.kluster.controller.AuthServiceTest.testAuthenticateAndRefreshFlow  Time elapsed: 0.54 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testAuthenticateAndRefreshFlow(AuthServiceTest.java:32)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.kluster.controller.AuthServiceTest.testTamperedAccessTokenIsInvalid  Time elapsed: 0.22 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testTamperedAccessTokenIsInvalid(AuthServiceTest.java:71)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.kluster.controller.AuthServiceTest.testDifferentSecretTokenIsInvalid  Time elapsed: 0.219 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testDifferentSecretTokenIsInvalid(AuthServiceTest.java:97)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.kluster.controller.AuthServiceTest.testExpiredAccessTokenIsInvalid  Time elapsed: 0.222 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testExpiredAccessTokenIsInvalid(AuthServiceTest.java:84)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.kluster.controller.AuthServiceTest.testTamperedRefreshTokenIsRejected  Time elapsed: 0.217 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testTamperedRefreshTokenIsRejected(AuthServiceTest.java:113)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.kluster.controller.AuthServiceTest.testAuthenticateInvalidPassword  Time elapsed: 0.219 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testAuthenticateInvalidPassword(AuthServiceTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.kluster.controller.AuthServiceTest.testInvalidAccessTokenRequiresReauth  Time elapsed: 0.219 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testInvalidAccessTokenRequiresReauth(AuthServiceTest.java:148)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.kluster.controller.AuthServiceTest.testRoleAuthorizationAllowedAndDenied  Time elapsed: 0.22 s  <<< ERROR!
+java.lang.RuntimeException: Failed to register user: [SQLITE_ERROR] SQL error or missing database (table Personnel has no column named rank)
+	at com.kluster.controller.AuthService.register(AuthService.java:86)
+	at com.kluster.controller.AuthService.register(AuthService.java:110)
+	at com.kluster.controller.AuthServiceTest.testRoleAuthorizationAllowedAndDenied(AuthServiceTest.java:127)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

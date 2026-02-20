@@ -26,6 +26,7 @@ public class AuthLogin extends APIEndpoint {
     public void handle(Context ctx) throws UnsupportedOperationException {
         try {
             AuthRequest req = gson.fromJson(ctx.body(), AuthRequest.class);
+            
             if (req == null || req.id <= 0 || req.password == null) {
                 ctx.status(400).json(new ErrorResponse("Invalid request", ctx.path(), 400));
                 return;
@@ -33,6 +34,7 @@ public class AuthLogin extends APIEndpoint {
 
             AuthService auth = kluster.getAuthService();
             AuthService.AuthResponse r = auth.authenticateWithRefresh(req.id, req.password, 60, 7);
+
             if (r == null) {
                 ctx.status(401).json(new ErrorResponse("Invalid credentials", ctx.path(), 401));
                 return;
