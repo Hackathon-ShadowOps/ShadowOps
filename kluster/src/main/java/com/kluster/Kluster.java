@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import com.kluster.controller.APIEndpoint;
 import com.kluster.controller.APIRunner;
-import com.kluster.controller.AuthService;
+import com.kluster.controller.CodeHelper;
 import com.kluster.controller.Database;
 
 import io.github.cdimascio.dotenv.Dotenv;
@@ -12,8 +12,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class Kluster {
     private final APIRunner apiRunner;
     private Database database;
-    private AuthService auth;
     private final Dotenv env;
+    private final CodeHelper codeHelper;
 
     public Kluster() {
         this((String) null);
@@ -36,20 +36,12 @@ public class Kluster {
         ensureAPIKeys();
 
         this.database = new Database(this);
-        this.auth = new AuthService(this.database, this);
-        this.apiRunner = new APIRunner(this.auth);
+        this.apiRunner = new APIRunner();
+        this.codeHelper = new CodeHelper();
 
         registerEndpoints();
 
-        // Allow tests to opt-out of starting the embedded HTTP server by setting
-        // the system property `SKIP_API_RUNNER=true`.
-        String skip = System.getProperty("SKIP_API_RUNNER");
-
-        if (skip == null || !skip.equalsIgnoreCase("true")) {
-            this.apiRunner.start();
-        } else {
-            System.out.println("Skipping APIRunner.start() due to SKIP_API_RUNNER=true");
-        }
+        apiRunner.start();
     }
 
     public void registerEndpoints() {
@@ -109,11 +101,15 @@ public class Kluster {
         return this.database;
     }
 
-    public AuthService getAuthService() {
-        return this.auth;
-    }
+    // public AuthService getAuthService() {
+    // return this.auth;
+    // }
 
     public Dotenv env() {
         return env;
+    }
+
+    public CodeHelper getCodeHelper() {
+        return codeHelper;
     }
 }
