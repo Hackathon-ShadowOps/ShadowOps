@@ -6,26 +6,6 @@ import com.kluster.controller.APIEndpoint;
 import com.kluster.controller.APIRunner;
 import com.kluster.controller.AuthService;
 import com.kluster.controller.Database;
-import com.kluster.endpoints.backend.*;
-import com.kluster.endpoints.backend.DELETE.DeliveriesRemove;
-import com.kluster.endpoints.backend.DELETE.IncidentReportRemove;
-import com.kluster.endpoints.backend.DELETE.PersonnelRemove;
-import com.kluster.endpoints.backend.GET.BaseGet;
-import com.kluster.endpoints.backend.GET.DeliveriesGet;
-import com.kluster.endpoints.backend.GET.IncidentReportGet;
-import com.kluster.endpoints.backend.GET.LogGet;
-import com.kluster.endpoints.backend.GET.PersonnelGet;
-import com.kluster.endpoints.backend.POST.AuthLogin;
-import com.kluster.endpoints.backend.POST.AuthRegisterHost;
-import com.kluster.endpoints.backend.POST.AuthLogout;
-import com.kluster.endpoints.backend.POST.AuthRefresh;
-import com.kluster.endpoints.backend.POST.BaseAdd;
-import com.kluster.endpoints.backend.POST.DeliveriesAdd;
-import com.kluster.endpoints.backend.POST.IncidentReportAdd;
-import com.kluster.endpoints.backend.POST.PersonnelAdd;
-import com.kluster.endpoints.backend.POST.PersonnelAssign;
-import com.kluster.endpoints.backend.POST.PersonnelDeassign;
-import com.kluster.endpoints.frontend.*;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -74,53 +54,55 @@ public class Kluster {
 
     public void registerEndpoints() {
         ArrayList<APIEndpoint> endpointsGet = new ArrayList<>();
-        endpointsGet.add(new BaseGet(this));
-        endpointsGet.add(new AuthPage(this));
-        endpointsGet.add(new Landing(this));
-        endpointsGet.add(new ProtectedSample(this));
-        
-        // {{baseId}} endpoints
-        endpointsGet.add(new PersonnelGet(this));
-        endpointsGet.add(new DeliveriesGet(this));
-        endpointsGet.add(new IncidentReportGet(this));
-        endpointsGet.add(new LogGet(this));
-        endpointsGet.add(new BaseLanding(this));
-        endpointsGet.add(new Deliveries(this));
-        endpointsGet.add(new IncidentReport(this));
-        endpointsGet.add(new Log(this));
-        endpointsGet.add(new Personnel(this));
 
+        // Backend
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.BaseInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.DashboardInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.DeliveryInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.InventoryCheckInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.InventoryInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.LogInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.PersonnelInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.ProductInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.SpecificDeliveryInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.VehicleInfo(this));
+
+        // Frontend
+        endpointsGet.add(new com.kluster.endpoints.frontend.Base(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.Dashboard(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.Deliveries(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.Inventory(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.InventoryCheck(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.Landing(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.Log(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.Personnel(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.ProductInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.Vehicle(this));
 
         ArrayList<APIEndpoint> endpointsPost = new ArrayList<>();
-        endpointsPost.add(new AuthRegisterHost(this));
-        endpointsPost.add(new AuthLogin(this));
-        endpointsPost.add(new AuthRefresh(this));
-        endpointsPost.add(new AuthLogout(this));
-        endpointsPost.add(new BaseAdd(this));
-
-        // {{baseId}} endpoints
-        endpointsPost.add(new DeliveriesAdd(this));
-        endpointsPost.add(new PersonnelDeassign(this));
-        endpointsPost.add(new PersonnelAssign(this));
-        endpointsPost.add(new PersonnelAdd(this));
-        endpointsPost.add(new IncidentReportAdd(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.DeliveryRemoval(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.PersonnelRemoval(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.ProductRemoval(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.VehicleRemoval(this));
 
         ArrayList<APIEndpoint> endpointsDelete = new ArrayList<>();
-        // {{baseId}} endpoints
-        endpointsDelete.add(new DeliveriesRemove(this));
-        endpointsDelete.add(new IncidentReportRemove(this));
-        endpointsDelete.add(new PersonnelRemove(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.POST.DeliveryUpdate(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.POST.InventoryUpdate(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.POST.LogUpdate(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.POST.ProductUpdate(this));
 
         this.apiRunner.registerEndpoints(endpointsGet, endpointsPost, endpointsDelete);
     }
 
     public void ensureAPIKeys() {
-        if (this.env == null)
+        if (this.env == null) {
             throw new RuntimeException("Environment variables not loaded (.env missing or unreadable)");
+        }
 
         String jwt = this.env.get("JWT_SECRET");
-        if (jwt == null || jwt.isBlank())
+        if (jwt == null || jwt.isBlank()) {
             throw new RuntimeException("JWT Secret missing");
+        }
     }
 
     public Database getDatabase() {

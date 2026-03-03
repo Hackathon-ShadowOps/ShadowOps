@@ -1,9 +1,16 @@
 package com.kluster.endpoints.frontend;
 
+import com.kluster.Kluster;
 import com.kluster.controller.APIEndpoint;
 import io.javalin.http.Context;
 
 public class InventoryCheck extends APIEndpoint {
+    private final Kluster kluster;
+
+    public InventoryCheck(Kluster kluster) {
+        this.kluster = kluster;
+    }
+
     @Override
     public String path() {
         return "/inventoryCheck";
