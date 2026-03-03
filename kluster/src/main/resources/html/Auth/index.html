@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Auth Demo</title>
+		<!-- INLINE_CSS -->
+	</head>
+	<body>
+		<main>
+			<h1>Authentication Demo</h1>
+
+			<section id="login">
+				<label for="userid">User ID:</label>
+				<input id="userid" type="number" value="1" />
+				<label for="password">Password:</label>
+				<input id="password" type="password" value="1" />
+				<button id="btnLogin">Login</button>
+			</section>
+
+			<section id="controls">
+				<button id="btnProtected">Call Protected Endpoint</button>
+				<button id="btnRefresh">Refresh Tokens</button>
+				<button id="btnLogout">Logout</button>
+			</section>
+
+			<section>
+				<h3>Status</h3>
+				<pre id="status">Not logged in</pre>
+			</section>
+		</main>
+
+		<!-- INLINE_JS -->
+	</body>
+</html>

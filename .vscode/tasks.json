@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Maven: Run All Tests",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-DargLine=--add-opens=java.base/java.util=ALL-UNNAMED",
+        "test"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/kluster"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Maven: Run Current Test",
+      "type": "shell",
+      "command": "mvn",
+      "args": [
+        "-Dtest=${fileBasenameNoExtension}",
+        "-DargLine=--add-opens=java.base/java.util=ALL-UNNAMED",
+        "test"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/kluster"
+      },
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
