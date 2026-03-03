@@ -30,9 +30,4 @@ public class Landing extends APIEndpoint {
 
         ctx.contentType("text/html").result(landingPage);
     }
-
-    @Override
-    public PersonnelRole[] allowedRoles() {
-        return null; // public endpoint, no auth required
-    }
 }

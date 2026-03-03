@@ -16,6 +16,6 @@ public abstract class APIEndpoint {
      * - return array with roles => only those roles allowed
      */
     public PersonnelRole[] allowedRoles() {
-        return new PersonnelRole[0]; // default: any authenticated user allowed
+        return null; // null means public endpoint by default
     }
 }

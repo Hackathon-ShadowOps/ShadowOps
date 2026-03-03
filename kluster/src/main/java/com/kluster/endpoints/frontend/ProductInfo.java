@@ -3,10 +3,10 @@ package com.kluster.endpoints.frontend;
 import com.kluster.controller.APIEndpoint;
 import io.javalin.http.Context;
 
-public class Personnel extends APIEndpoint {
+public class ProductInfo extends APIEndpoint {
     @Override
     public String path() {
-        return "/personnel";
+        return "/productInfo";
     }
 
     @Override

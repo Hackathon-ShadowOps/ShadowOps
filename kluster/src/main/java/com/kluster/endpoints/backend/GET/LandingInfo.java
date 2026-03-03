@@ -1,16 +1,19 @@
-package com.kluster.endpoints.frontend;
+package com.kluster.endpoints.backend.GET;
 
 import com.kluster.controller.APIEndpoint;
 import io.javalin.http.Context;
 
-public class Personnel extends APIEndpoint {
+/**
+ * Redirect page
+ */
+public class LandingInfo extends APIEndpoint {
     @Override
     public String path() {
-        return "/personnel";
+        return "/api/v1/landingInfo";
     }
 
     @Override
     public void handle(Context ctx) throws UnsupportedOperationException {
     }
-
+    
 }

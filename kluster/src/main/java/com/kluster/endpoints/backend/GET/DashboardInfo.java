@@ -1,12 +1,15 @@
-package com.kluster.endpoints.frontend;
+package com.kluster.endpoints.backend.GET;
 
 import com.kluster.controller.APIEndpoint;
 import io.javalin.http.Context;
 
-public class Personnel extends APIEndpoint {
+/**
+ * Most important info about the base
+ */
+public class DashboardInfo extends APIEndpoint {
     @Override
     public String path() {
-        return "/personnel";
+        return "/api/v1/dashboardInfo";
     }
 
     @Override

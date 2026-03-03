@@ -22,7 +22,7 @@ public class AuthServiceTest {
         // Prevent the embedded server from starting during unit tests
         System.setProperty("SKIP_API_RUNNER", "true");
 
-        this.kluster = new Kluster("/home/kactuz/Documents/Github/ShadowOps/.env"); // Load .env from project root
+        this.kluster = new Kluster("/home/kactuz/Documents/Github/ShadowOps/kluster/.env"); // Load .env from project root
         this.db = new Database(this.kluster);
         this.auth = new AuthService(this.db, this.kluster);
     }

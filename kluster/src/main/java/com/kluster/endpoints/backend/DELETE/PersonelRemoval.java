@@ -1,12 +1,12 @@
-package com.kluster.endpoints.frontend;
+package com.kluster.endpoints.backend.DELETE;
 
 import com.kluster.controller.APIEndpoint;
 import io.javalin.http.Context;
 
-public class Personnel extends APIEndpoint {
+public class PersonelRemoval extends APIEndpoint {
     @Override
     public String path() {
-        return "/personnel";
+        return "/api/v1/personelRemoval";
     }
 
     @Override

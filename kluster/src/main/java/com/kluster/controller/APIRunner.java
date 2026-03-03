@@ -103,10 +103,7 @@ public class APIRunner {
         for (APIEndpoint endPoint : getEndpoints) {
             app.get(endPoint.path(), ctx -> {
                 try {
-                    NaiveRateLimit.requestPerTimeUnit(ctx, 10, TimeUnit.SECONDS);
-
-                    System.out.println("Handling GET " + endPoint.path() + " - Allowed Roles: "
-                            + Arrays.toString(endPoint.allowedRoles()));
+                    NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
 
                     // Authorization check
                     if (!checkAuthorization(ctx, endPoint))
@@ -126,9 +123,6 @@ public class APIRunner {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
 
-                    System.out.println("Handling GET " + endPoint.path() + " - Allowed Roles: "
-                            + Arrays.toString(endPoint.allowedRoles()));
-
                     // Authorization check
                     if (!checkAuthorization(ctx, endPoint))
                         return;
@@ -146,9 +140,6 @@ public class APIRunner {
             app.delete(endPoint.path(), ctx -> {
                 try {
                     NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
-
-                    System.out.println("Handling GET " + endPoint.path() + " - Allowed Roles: "
-                            + Arrays.toString(endPoint.allowedRoles()));
 
                     // Authorization check
                     if (!checkAuthorization(ctx, endPoint))
