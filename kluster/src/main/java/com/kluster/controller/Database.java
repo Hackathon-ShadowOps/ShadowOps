@@ -8,13 +8,28 @@ import java.util.ArrayList;
 
 import com.google.gson.Gson;
 import com.kluster.Kluster;
-import com.kluster.models.Personnel;
-import com.kluster.models.PersonnelRole;
 
 public class Database {
     private Gson gson = new Gson();
     private final Kluster kluster;
     private Connection connection = null;
+
+    public enum Tables {
+        PERSONNEL("personnel"),
+        BASE("base"),
+        AIRPLANE("airplane"),
+        LOG("log");
+
+        private final String tableName;
+
+        Tables(String tableName) {
+            this.tableName = tableName;
+        }
+
+        public String getTableName() {
+            return tableName;
+        }
+    }
 
     public Database(Kluster kluster) {
         this.kluster = kluster;
@@ -50,10 +65,9 @@ public class Database {
     private void createAllTables() {
         ArrayList<String> stmts = new ArrayList<>();
 
-        stmts.add("CREATE TABLE IF NOT EXISTS personnel ( data TEXT NOT NULL );");
-        stmts.add("CREATE TABLE IF NOT EXISTS base ( data TEXT NOT NULL );");
-        stmts.add("CREATE TABLE IF NOT EXISTS airplane ( data TEXT NOT NULL );");
-        stmts.add("CREATE TABLE IF NOT EXISTS log ( data TEXT NOT NULL );");
+        for (Tables table : Tables.values()) {
+            stmts.add(String.format("CREATE TABLE IF NOT EXISTS %s ( data TEXT NOT NULL );", table.getTableName()));
+        }
 
         try (Statement stmt = connection.createStatement()) {
             for (String sql : stmts) {
@@ -86,10 +100,116 @@ public class Database {
     }
 
     /**
-     * Add methods to interact with the database here, e.g.:
-     * - addPersonnel(Personnel p)
-     * - getPersonnelById(String id)
-     * - updatePersonnel(Personnel p)
-     * - deletePersonnel(String id)
+     * Generic method to insert data into a specified table. The data is converted
+     * to a JSON string before being stored in the database.
+     * 
+     * @param table The table to insert data into
+     * @param data  The Java object to be inserted, which will be converted to JSON
+     * @throws SQLException
      */
+    public void insertData(Tables table, Object data) throws SQLException {
+        String jsonData = convertToJson(data);
+        String sql = String.format("INSERT INTO %s (data) VALUES (?);", table.getTableName());
+
+        try (var pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, jsonData);
+            pstmt.executeUpdate();
+        }
+    }
+
+    public void insertData(Tables table, ArrayList<Object> data) throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            throw new SQLException("Database connection is not available");
+        }
+
+        String sql = String.format("INSERT INTO %s (data) VALUES (?);", table.getTableName());
+
+        boolean previousAutoCommit = connection.getAutoCommit();
+        startTransaction();
+
+        try (var pstmt = connection.prepareStatement(sql)) {
+            for (Object obj : data) {
+                String jsonData = convertToJson(obj);
+                pstmt.setString(1, jsonData);
+                pstmt.executeUpdate();
+            }
+
+            commitTransaction();
+        } catch (SQLException e) {
+            try {
+                rollbackTransaction();
+            } catch (SQLException rbEx) {
+                e.addSuppressed(rbEx);
+            }
+            throw e;
+        } finally {
+            try {
+                if (connection != null && !connection.getAutoCommit()) {
+                    connection.setAutoCommit(previousAutoCommit);
+                }
+            } catch (SQLException ex) {
+                // If we cannot restore auto-commit, surface that as a SQLException
+                throw ex;
+            }
+        }
+    }
+
+    /**
+     * Generic method to retrieve all records from a specified table and convert
+     * them. Uses the provided class type to convert JSON strings back into Java
+     * objects.
+     * 
+     * @param <T>   The type of objects to be returned in the list, which should
+     *              match the class type used when inserting data into the table
+     * @param table The table to retrieve data from
+     * @param clazz The class type to use for converting JSON strings back into Java
+     *              objects
+     * @return An ArrayList of Java objects of the specified type, representing all
+     *         records retrieved from the specified table
+     * @throws SQLException
+     */
+    public <T> ArrayList<T> getAllData(Tables table, Class<T> clazz) throws SQLException {
+        String sql = String.format("SELECT data FROM %s;", table.getTableName());
+        ArrayList<T> results = new ArrayList<>();
+
+        try (var stmt = connection.createStatement();
+                var rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                String jsonData = rs.getString("data");
+                T obj = convertFromJson(jsonData, clazz);
+                results.add(obj);
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * Utility methods for converting between Java objects and JSON strings using
+     * Gson.
+     * 
+     * @param data The Java object to be converted to a JSON string
+     * @return A JSON string representation of the provided Java object
+     */
+    public String convertToJson(Object data) {
+        return gson.toJson(data);
+    }
+
+    /**
+     * Generic method to convert a JSON string back into a Java object of the
+     * specified class type.
+     * 
+     * @param <T>   The type of the Java object to be returned, which should match
+     *              the class type
+     * @param json  The JSON string to be converted back into a Java object
+     * @param clazz The class type to use for converting the JSON string back into a
+     *              Java object
+     * @return A Java object of the specified type, created by converting the
+     *         provided JSON string
+     */
+    public <T> T convertFromJson(String json, Class<T> clazz) {
+        return gson.fromJson(json, clazz);
+    }
+
 }

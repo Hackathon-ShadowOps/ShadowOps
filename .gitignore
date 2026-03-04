@@ -24,3 +24,5 @@ hs_err_pid*
 replay_pid*
 /kluster/target/maven-status/maven-compiler-plugin/testCompile
 /kluster/target/maven-status/maven-compiler-plugin/compile
+/kluster/.vscode
+/kluster/target
