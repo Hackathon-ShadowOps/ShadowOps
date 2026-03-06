@@ -5,21 +5,31 @@
 	const refreshBtn = document.getElementById("refresh");
 	const spanSelect = document.getElementById("spanSelect");
 	const statusIndicator = document.getElementById("status-indicator");
+
+	const scheduleForm = document.getElementById("create-schedule-form");
+	const scheduleFeedback = document.getElementById("schedule-feedback");
+	const scheduleList = document.getElementById("schedule-list");
+
 	const TIMELINE_COUNT = 10;
 	const LANE_HEIGHT = 34;
 	const LANE_GAP = 6;
 
-	let viewSpanMinutes = parseInt(spanSelect.value, 10); // minutes
-	let timelineStart = Math.floor(Date.now() / 60000) - 30; // minute epoch
+	let viewSpanMinutes = parseInt(spanSelect.value, 10);
+	let timelineStart = Math.floor(Date.now() / 60000) - 30;
 	let timelineEnd = timelineStart + viewSpanMinutes;
 	let wheelScrollAccum = 0;
 	let wheelScrollTimer = null;
 	let loadToken = 0;
 	let statusTimer = null;
+	let allSchedules = [];
 
 	function formatHM(mins) {
 		const d = new Date(mins * 60000);
 		return d.toISOString().substr(11, 5);
+	}
+
+	function formatDateTime(epochMinutes) {
+		return new Date(epochMinutes * 60000).toLocaleString();
 	}
 
 	function showStatus(message, isSuccess) {
@@ -36,7 +46,6 @@
 
 	function buildRuler() {
 		rulerEl.innerHTML = "";
-		const width = timelineEl.clientWidth;
 		const span = timelineEnd - timelineStart;
 		const major = Math.max(5, Math.floor(span / 6));
 		for (let t = timelineStart; t <= timelineEnd; t += major) {
@@ -100,29 +109,49 @@
 		block.style.top = laneTop(groundSpace) + "px";
 	}
 
+	function checkOverlap(scheduleId, groundSpace, startTime, endTime) {
+		for (const s of allSchedules) {
+			if (scheduleId != null && Number(s.databaseId) === Number(scheduleId)) {
+				continue;
+			}
+			if (Number(s.groundSpace) !== Number(groundSpace)) {
+				continue;
+			}
+			if (startTime < Number(s.landingTimeEnd) && endTime > Number(s.landingTimeStart)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	function renderSchedules(schedules) {
+		allSchedules = schedules;
 		clearBlocks();
 		buildTrackLanes();
+
 		for (const s of schedules) {
-			const start = s.landingTimeStart;
-			const end = s.landingTimeEnd;
+			const start = Number(s.landingTimeStart);
+			const end = Number(s.landingTimeEnd);
 			const block = document.createElement("div");
 			block.className = "schedule-block";
-			block.dataset.scheduleId = s.databaseId;
-			block.dataset.airplaneId = s.airplaneId;
-			block.dataset.groundSpace = s.groundSpace;
-			block.dataset.start = start;
-			block.dataset.end = end;
+			block.dataset.scheduleId = String(s.databaseId);
+			block.dataset.airplaneId = String(s.airplaneId);
+			block.dataset.groundSpace = String(s.groundSpace);
+			block.dataset.start = String(start);
+			block.dataset.end = String(end);
 
 			renderBlockPosition(block, start, end, s.groundSpace);
 
 			const leftHandle = document.createElement("div");
 			leftHandle.className = "handle left";
+
 			const label = document.createElement("div");
 			label.className = "label";
-			label.textContent = s.airplaneId + " (" + formatHM(start) + " - " + formatHM(end) + ")";
+			label.textContent = s.airplaneId + " (" + formatHM(start) + " - " + formatHM(end) + ") G" + s.groundSpace;
+
 			const rightHandle = document.createElement("div");
 			rightHandle.className = "handle right";
+
 			block.appendChild(leftHandle);
 			block.appendChild(label);
 			block.appendChild(rightHandle);
@@ -134,10 +163,10 @@
 
 	function attachInteractions(block, leftHandle, rightHandle) {
 		let mode = null;
-		let start0 = 0,
-			end0 = 0,
-			x0 = 0,
-			ground0 = 1;
+		let start0 = 0;
+		let end0 = 0;
+		let x0 = 0;
+		let ground0 = 1;
 
 		leftHandle.addEventListener("mousedown", (ev) => {
 			ev.stopPropagation();
@@ -148,6 +177,7 @@
 			x0 = ev.clientX;
 			document.body.style.userSelect = "none";
 		});
+
 		rightHandle.addEventListener("mousedown", (ev) => {
 			ev.stopPropagation();
 			mode = "resize-right";
@@ -177,9 +207,11 @@
 			const dx = ev.clientX - x0;
 			const span = timelineEnd - timelineStart;
 			const minutesDelta = Math.round((dx / rect.width) * span);
-			let newStart = start0,
-				newEnd = end0,
-				newGround = ground0;
+
+			let newStart = start0;
+			let newEnd = end0;
+			let newGround = ground0;
+
 			if (mode === "drag") {
 				newStart = start0 + minutesDelta;
 				newEnd = end0 + minutesDelta;
@@ -193,26 +225,45 @@
 				newEnd = end0 + minutesDelta;
 				if (newEnd <= start0 + 5) newEnd = start0 + 5;
 			}
-			block.dataset.start = newStart;
-			block.dataset.end = newEnd;
-			block.dataset.groundSpace = newGround;
+
+			block.dataset.start = String(newStart);
+			block.dataset.end = String(newEnd);
+			block.dataset.groundSpace = String(newGround);
 			renderBlockPosition(block, newStart, newEnd, newGround);
 			block.querySelector(".label").textContent = block.dataset.airplaneId + " (" + formatHM(newStart) + " - " + formatHM(newEnd) + ") G" + newGround;
 		}
 
-		async function onUp(ev) {
+		async function onUp() {
 			if (!mode) return;
 			document.body.style.userSelect = "";
 			block.classList.remove("dragging");
-			const changed = start0 !== Number(block.dataset.start) || end0 !== Number(block.dataset.end);
-			const laneChanged = ground0 !== Number(block.dataset.groundSpace);
+
+			const nextScheduleId = Number(block.dataset.scheduleId);
+			const nextGround = Number(block.dataset.groundSpace);
+			const nextStart = Number(block.dataset.start);
+			const nextEnd = Number(block.dataset.end);
+
+			const changed = start0 !== nextStart || end0 !== nextEnd;
+			const laneChanged = ground0 !== nextGround;
+
 			if (changed || laneChanged) {
-				const ok = await updateSchedule(Number(block.dataset.scheduleId), Number(block.dataset.groundSpace), Number(block.dataset.start), Number(block.dataset.end));
+				if (checkOverlap(nextScheduleId, nextGround, nextStart, nextEnd)) {
+					showStatus("Cannot overlap schedules", false);
+					block.dataset.start = String(start0);
+					block.dataset.end = String(end0);
+					block.dataset.groundSpace = String(ground0);
+					renderBlockPosition(block, start0, end0, ground0);
+					block.querySelector(".label").textContent = block.dataset.airplaneId + " (" + formatHM(start0) + " - " + formatHM(end0) + ") G" + ground0;
+					mode = null;
+					return;
+				}
+
+				const ok = await updateSchedule(nextScheduleId, nextGround, nextStart, nextEnd);
 				if (!ok) {
 					showStatus("Failed to save", false);
-					block.dataset.start = start0;
-					block.dataset.end = end0;
-					block.dataset.groundSpace = ground0;
+					block.dataset.start = String(start0);
+					block.dataset.end = String(end0);
+					block.dataset.groundSpace = String(ground0);
 					renderBlockPosition(block, start0, end0, ground0);
 					block.querySelector(".label").textContent = block.dataset.airplaneId + " (" + formatHM(start0) + " - " + formatHM(end0) + ") G" + ground0;
 				} else {
@@ -227,7 +278,12 @@
 
 	async function updateSchedule(scheduleId, groundSpace, start, end) {
 		try {
-			const params = new URLSearchParams({ scheduleId: String(scheduleId), groundSpace: String(groundSpace), startTime: String(Math.floor(start)), endTime: String(Math.floor(end)) });
+			const params = new URLSearchParams({
+				scheduleId: String(scheduleId),
+				groundSpace: String(groundSpace),
+				startTime: String(Math.floor(start)),
+				endTime: String(Math.floor(end)),
+			});
 			const res = await fetch("/api/v1/updateAirplaneSchedule?" + params.toString(), { method: "POST" });
 			if (!res.ok) {
 				console.warn("Update failed", await res.text());
@@ -269,8 +325,14 @@
 		}
 		timelineEnd = timelineStart + viewSpanMinutes;
 		buildRuler();
+		clearBlocks();
+		buildTrackLanes();
 		const token = ++loadToken;
-		const params = new URLSearchParams({ startTime: String(timelineStart), endTime: String(timelineEnd) });
+
+		const params = new URLSearchParams({
+			startTime: String(timelineStart),
+			endTime: String(timelineEnd),
+		});
 		const res = await fetch("/api/v1/airplaneLandingSchedule?" + params.toString());
 		if (!res.ok) {
 			console.error("Failed to load schedules");
@@ -290,175 +352,151 @@
 		renderSchedules(schedules);
 	}
 
-	refreshBtn.addEventListener("click", () => {
-		loadSchedules();
-		getSchedules();
+	async function getSchedules() {
+		try {
+			const res = await fetch("/api/v1/airplaneLandingSchedule", {
+				method: "GET",
+				headers: { "Content-Type": "application/json" },
+			});
+
+			if (!res.ok) {
+				const errText = await res.text();
+				scheduleFeedback.textContent = `Failed to get schedule: ${errText}`;
+				return;
+			}
+
+			const text = await res.text();
+			let schedules = [];
+			try {
+				schedules = JSON.parse(text);
+			} catch (e) {
+				scheduleFeedback.textContent = "Failed to parse schedule data.";
+				return;
+			}
+
+			scheduleList.innerHTML = "";
+			schedules.forEach((schedule) => {
+				const li = document.createElement("li");
+				const info = document.createElement("span");
+				info.textContent = `${schedule.airplaneId} | Ground Space: ${schedule.groundSpace} | ${formatDateTime(schedule.landingTimeStart)} - ${formatDateTime(schedule.landingTimeEnd)}`;
+
+				const removeBtn = document.createElement("button");
+				removeBtn.textContent = "Remove";
+				removeBtn.onclick = async () => {
+					if (confirm(`Remove schedule for ${schedule.airplaneId}?`)) {
+						await removeSchedule(schedule.airplaneId);
+					}
+				};
+
+				li.appendChild(info);
+				li.appendChild(removeBtn);
+				scheduleList.appendChild(li);
+			});
+		} catch (err) {
+			scheduleFeedback.textContent = `Failed to get schedule: ${err.message}`;
+		}
+	}
+
+	async function removeSchedule(airplaneId) {
+		try {
+			const res = await fetch(`/api/v1/removeAirplaneSchedule?airplaneId=${encodeURIComponent(airplaneId)}`, {
+				method: "DELETE",
+			});
+
+			if (!res.ok) {
+				const errText = await res.text();
+				scheduleFeedback.textContent = `Failed to remove schedule: ${errText}`;
+				return;
+			}
+
+			scheduleFeedback.textContent = "Schedule removed successfully.";
+			await getSchedules();
+			await loadSchedules();
+		} catch (err) {
+			scheduleFeedback.textContent = `Failed to remove schedule: ${err.message}`;
+		}
+	}
+
+	scheduleForm?.addEventListener("submit", async (e) => {
+		e.preventDefault();
+
+		const startTimeInput = document.getElementById("schedule-start").value.trim();
+		const endTimeInput = document.getElementById("schedule-end").value.trim();
+		const airplaneId = document.getElementById("schedule-name").value.trim();
+		const groundSpace = parseInt(document.getElementById("schedule-ground-space").value, 10);
+
+		if (!startTimeInput || !endTimeInput || !airplaneId || !groundSpace) {
+			scheduleFeedback.textContent = "Please fill in all required fields.";
+			return;
+		}
+
+		const startTimeMs = Date.parse(startTimeInput);
+		const endTimeMs = Date.parse(endTimeInput);
+
+		if (isNaN(startTimeMs) || isNaN(endTimeMs)) {
+			scheduleFeedback.textContent = "Invalid date format. Please use the date picker.";
+			return;
+		}
+
+		if (endTimeMs <= startTimeMs) {
+			scheduleFeedback.textContent = "End time must be after start time.";
+			return;
+		}
+
+		const startTime = Math.floor(startTimeMs / 60000);
+		const endTime = Math.floor(endTimeMs / 60000);
+
+		if (checkOverlap(null, groundSpace, startTime, endTime)) {
+			scheduleFeedback.textContent = `Schedule overlaps with an existing schedule on ground space ${groundSpace}.`;
+			return;
+		}
+
+		scheduleFeedback.textContent = "Creating schedule...";
+
+		try {
+			const payload = {
+				airplaneId,
+				startTime,
+				endTime,
+				groundSpace,
+			};
+
+			const res = await fetch("/api/v1/addAirplaneSchedule", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+
+			if (!res.ok) {
+				const errText = await res.text();
+				scheduleFeedback.textContent = `Failed to create schedule: ${errText}`;
+				return;
+			}
+
+			await res.text();
+			scheduleForm.reset();
+			scheduleFeedback.textContent = "Schedule created successfully.";
+			await getSchedules();
+			await loadSchedules();
+		} catch (err) {
+			scheduleFeedback.textContent = `Failed to create schedule: ${err.message}`;
+		}
 	});
+
+	refreshBtn.addEventListener("click", async () => {
+		await loadSchedules();
+		await getSchedules();
+	});
+
 	spanSelect.addEventListener("change", () => {
 		viewSpanMinutes = parseInt(spanSelect.value, 10);
 		loadSchedules();
 	});
-	timelineEl.addEventListener("wheel", onTimelineWheel, { passive: false });
 
+	timelineEl.addEventListener("wheel", onTimelineWheel, { passive: false });
 	window.addEventListener("resize", buildRuler);
-	// initial load
+
 	buildRuler();
 	loadSchedules(true);
-	
-	// Expose loadSchedules globally so it can be called from form handlers
-	window.loadSchedules = loadSchedules;
+	getSchedules();
 })();
-
-async function getSchedules() {
-	try {
-		const res = await fetch("/api/v1/airplaneLandingSchedule", {
-			method: "GET",
-			headers: { "Content-Type": "application/json" },
-		});
-
-		if (!res.ok) {
-			const errText = await res.text();
-			scheduleFeedback.textContent = `Failed to get schedule: ${errText}`;
-			return;
-		}
-
-		const text = await res.text();
-		let schedules = [];
-		try {
-			schedules = JSON.parse(text);
-		} catch (e) {
-			scheduleFeedback.textContent = "Failed to parse schedule data.";
-			return;
-		}
-
-		scheduleList.innerHTML = "";
-		schedules.forEach(renderScheduleItem);
-	} catch (err) {
-		scheduleFeedback.textContent = `Failed to get schedule: ${err.message}`;
-	}
-}
-
-const scheduleForm = document.getElementById("create-schedule-form");
-const scheduleFeedback = document.getElementById("schedule-feedback");
-const scheduleList = document.getElementById("schedule-list");
-
-function formatDateTime(epochMinutes) {
-	const date = new Date(epochMinutes * 60000);
-	return date.toLocaleString();
-}
-
-function renderScheduleItem(schedule) {
-	const li = document.createElement("li");
-	li.style.display = "flex";
-	li.style.alignItems = "center";
-	li.style.gap = "10px";
-	li.style.marginBottom = "10px";
-	
-	const info = document.createElement("span");
-	info.textContent = `${schedule.airplaneId} | Ground Space: ${schedule.groundSpace} | ${formatDateTime(schedule.landingTimeStart)} - ${formatDateTime(schedule.landingTimeEnd)}`;
-	
-	const removeBtn = document.createElement("button");
-	removeBtn.textContent = "Remove";
-	removeBtn.style.marginLeft = "auto";
-	removeBtn.onclick = async () => {
-		if (confirm(`Remove schedule for ${schedule.airplaneId}?`)) {
-			await removeSchedule(schedule.airplaneId);
-		}
-	};
-	
-	li.appendChild(info);
-	li.appendChild(removeBtn);
-	scheduleList.appendChild(li);
-}
-
-async function removeSchedule(airplaneId) {
-	try {
-		const res = await fetch(`/api/v1/removeAirplaneSchedule?airplaneId=${encodeURIComponent(airplaneId)}`, {
-			method: "DELETE",
-		});
-
-		if (!res.ok) {
-			const errText = await res.text();
-			scheduleFeedback.textContent = `Failed to remove schedule: ${errText}`;
-			return;
-		}
-
-		scheduleFeedback.textContent = "Schedule removed successfully.";
-		await getSchedules();
-		await loadSchedules();
-	} catch (err) {
-		scheduleFeedback.textContent = `Failed to remove schedule: ${err.message}`;
-	}
-}
-
-scheduleForm?.addEventListener("submit", async (e) => {
-	e.preventDefault();
-
-	const startTimeInput = document.getElementById("schedule-start").value.trim();
-	const endTimeInput = document.getElementById("schedule-end").value.trim();
-
-	if (!startTimeInput || !endTimeInput) {
-		scheduleFeedback.textContent = "Please provide both start and end times.";
-		return;
-	}
-
-	// Date.parse gives epoch milliseconds
-	const startTimeMs = Date.parse(startTimeInput);
-	const endTimeMs = Date.parse(endTimeInput);
-
-	if (isNaN(startTimeMs) || isNaN(endTimeMs)) {
-		scheduleFeedback.textContent = "Invalid date format. Please use the date picker.";
-		return;
-	}
-
-	if (endTimeMs <= startTimeMs) {
-		scheduleFeedback.textContent = "End time must be after start time.";
-		return;
-	}
-
-	// Normalize to epoch minutes to match the rest of this page/API usage
-	const startTime = Math.floor(startTimeMs / 60000);
-	const endTime = Math.floor(endTimeMs / 60000);
-
-	const payload = {
-		airplaneId: document.getElementById("schedule-name").value.trim(),
-		startTime,
-		endTime,
-	};
-
-	if (!payload.airplaneId || !payload.startTime || !payload.endTime) {
-		scheduleFeedback.textContent = "Please fill in all required fields.";
-		return;
-	}
-
-	scheduleFeedback.textContent = "Creating schedule...";
-
-	try {
-		const res = await fetch("/api/v1/addAirplaneSchedule", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-		});
-
-		if (!res.ok) {
-			const errText = await res.text();
-			scheduleFeedback.textContent = `Failed to create schedule: ${errText}`;
-			return;
-		}
-
-		// Backend currently returns plain text, not JSON
-		await res.text();
-
-		scheduleForm.reset();
-		scheduleFeedback.textContent = "Schedule created successfully.";
-
-		// Refresh timeline and schedule list after create
-		await getSchedules();
-		loadSchedules();
-	} catch (err) {
-		scheduleFeedback.textContent = `Failed to create schedule: ${err.message}`;
-	}
-});
-
-// Initial load of schedules
-getSchedules();

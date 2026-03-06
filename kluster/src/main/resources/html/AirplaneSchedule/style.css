@@ -185,6 +185,15 @@ button {
 	font-size: 14px;
 }
 
+#create-schedule-form select {
+	padding: 8px;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	font-size: 14px;
+	background: #fff;
+	cursor: pointer;
+}
+
 #schedule-feedback {
 	margin-top: 10px;
 	font-size: 14px;

@@ -30,13 +30,14 @@ public class AddAirplaneSchedule extends APIEndpoint {
         String airplaneId = request.airplaneId;
         long startTime = request.startTime;
         long endTime = request.endTime;
+    int groundSpace = request.groundSpace;
 
-        if (airplaneId == null || startTime == 0 || endTime == 0 || startTime >= endTime) {
+        if (airplaneId == null || startTime == 0 || endTime == 0 || startTime >= endTime || groundSpace <= 0) {
             ctx.status(400).result("Missing required parameters");
             return;
         }
 
-        boolean added = kluster.getDatabase().addAirplaneSchedule(airplaneId, startTime, endTime);
+        boolean added = kluster.getDatabase().addAirplaneSchedule(airplaneId, groundSpace, startTime, endTime);
 
         if (added) {
             ctx.status(200).result("Airplane schedule added successfully");
@@ -49,5 +50,6 @@ public class AddAirplaneSchedule extends APIEndpoint {
         public String airplaneId;
         public long startTime;
         public long endTime;
+        public int groundSpace;
     }
 }

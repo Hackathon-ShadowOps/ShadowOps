@@ -324,13 +324,14 @@ public class Database {
         return false;
     }
 
-    public boolean addAirplaneSchedule(String airplaneId, long startTime, long endTime) {
+    public boolean addAirplaneSchedule(String airplaneId, int groundSpace, long startTime, long endTime) {
         // Add a new airplane schedule to the database with default values
         String sql = "INSERT INTO airplane_schedule (airplane_id, ground_space, start_time, end_time) " +
-                "VALUES (?, 0, ?, ?);";
+                "VALUES (?, ?, ?, ?);";
 
         try (var pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, airplaneId);
+            pstmt.setInt(2, groundSpace);
 
             System.out.println("Adding airplane schedule with start time: " + startTime + "\nand end time: " + endTime);
 
@@ -338,8 +339,8 @@ public class Database {
             long startTimeLong = startTime;
             long endTimeLong = endTime;
 
-            pstmt.setLong(2, startTimeLong);
-            pstmt.setLong(3, endTimeLong);
+            pstmt.setLong(3, startTimeLong);
+            pstmt.setLong(4, endTimeLong);
             pstmt.executeUpdate();
             return true;
         } catch (NumberFormatException e) {

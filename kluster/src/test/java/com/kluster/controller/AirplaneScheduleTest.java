@@ -64,7 +64,7 @@ public class AirplaneScheduleTest {
         long start = 1000L;
         long end = 1100L;
 
-        boolean ok = this.db.addAirplaneSchedule(airplaneId, start, end);
+        boolean ok = this.db.addAirplaneSchedule(airplaneId, 0, start, end);
         assertTrue(ok);
 
         Connection conn = getConnectionFromDb();
@@ -89,7 +89,7 @@ public class AirplaneScheduleTest {
         long start2 = 3000L;
         long end2 = 3100L;
 
-        assertTrue(this.db.addAirplaneSchedule(airplaneId, start1, end1));
+        assertTrue(this.db.addAirplaneSchedule(airplaneId, 0, start1, end1));
         int scheduleId = getScheduleIdByAirplaneId(airplaneId);
 
         // Update with new times
@@ -113,7 +113,7 @@ public class AirplaneScheduleTest {
         long start = 4000L;
         long end = 4100L;
 
-        assertTrue(this.db.addAirplaneSchedule(airplaneId, start, end));
+        assertTrue(this.db.addAirplaneSchedule(airplaneId, 0, start, end));
 
         // Ensure present
         Connection conn = getConnectionFromDb();
