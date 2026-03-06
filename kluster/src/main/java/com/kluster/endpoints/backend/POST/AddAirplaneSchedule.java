@@ -31,16 +31,10 @@ public class AddAirplaneSchedule extends APIEndpoint {
         long startTime = request.startTime;
         long endTime = request.endTime;
 
-        System.out.println(endTime);
-
         if (airplaneId == null || startTime == 0 || endTime == 0 || startTime >= endTime) {
             ctx.status(400).result("Missing required parameters");
             return;
         }
-
-        System.out.println("Received request to add airplane schedule with ID: " + airplaneId);
-        System.out.println("Start time: " + startTime);
-        System.out.println("End time: " + endTime);
 
         boolean added = kluster.getDatabase().addAirplaneSchedule(airplaneId, startTime, endTime);
 

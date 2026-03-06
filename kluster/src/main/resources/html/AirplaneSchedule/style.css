@@ -46,12 +46,25 @@ main {
 	transform: translateX(-50%);
 }
 .track {
-	height: var(--timeline-height);
 	position: relative;
+	min-height: var(--timeline-height);
+}
+.timeline-lane {
+	position: absolute;
+	left: 0;
+	right: 0;
+	border: 1px dashed #e8e8e8;
+	border-radius: 6px;
+	padding-left: 8px;
+	line-height: 34px;
+	font-size: 11px;
+	color: #9a9a9a;
+	box-sizing: border-box;
+	pointer-events: none;
 }
 .schedule-block {
 	position: absolute;
-	height: 40px;
+	height: 34px;
 	border-radius: 6px;
 	background: linear-gradient(180deg, var(--block-color), #0d63d6);
 	color: #fff;
@@ -106,4 +119,27 @@ button {
 	border-radius: 6px;
 	border: 1px solid #ddd;
 	background: #fff;
+}
+.status-indicator {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	padding: 6px 12px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+	z-index: 100;
+}
+.status-indicator.success {
+	background: #34c759;
+	color: #fff;
+	opacity: 1;
+}
+.status-indicator.error {
+	background: #ff3b30;
+	color: #fff;
+	opacity: 1;
 }

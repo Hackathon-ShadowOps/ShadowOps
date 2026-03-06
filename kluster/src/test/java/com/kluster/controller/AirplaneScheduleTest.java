@@ -47,14 +47,24 @@ public class AirplaneScheduleTest {
         return (Connection) connField.get(this.db);
     }
 
+    private int getScheduleIdByAirplaneId(String airplaneId) throws Exception {
+        Connection conn = getConnectionFromDb();
+        try (PreparedStatement ps = conn.prepareStatement("SELECT id FROM airplane_schedule WHERE airplane_id = ?")) {
+            ps.setString(1, airplaneId);
+            try (ResultSet rs = ps.executeQuery()) {
+                assertTrue(rs.next());
+                return rs.getInt("id");
+            }
+        }
+    }
+
     @Test
     void testAddAirplaneSchedule() throws Exception {
         String airplaneId = "ADD-1";
-        int groundSpace = 5;
         long start = 1000L;
         long end = 1100L;
 
-        boolean ok = this.db.updateAirplaneSchedule(airplaneId, groundSpace, start, end);
+        boolean ok = this.db.addAirplaneSchedule(airplaneId, start, end);
         assertTrue(ok);
 
         Connection conn = getConnectionFromDb();
@@ -63,7 +73,7 @@ public class AirplaneScheduleTest {
             try (ResultSet rs = ps.executeQuery()) {
                 assertTrue(rs.next());
                 assertEquals(airplaneId, rs.getString("airplane_id"));
-                assertEquals(groundSpace, rs.getInt("ground_space"));
+                assertEquals(0, rs.getInt("ground_space"));
                 assertEquals(start, rs.getLong("start_time"));
                 assertEquals(end, rs.getLong("end_time"));
             }
@@ -79,16 +89,18 @@ public class AirplaneScheduleTest {
         long start2 = 3000L;
         long end2 = 3100L;
 
-        assertTrue(this.db.updateAirplaneSchedule(airplaneId, groundSpace, start1, end1));
+        assertTrue(this.db.addAirplaneSchedule(airplaneId, start1, end1));
+        int scheduleId = getScheduleIdByAirplaneId(airplaneId);
 
         // Update with new times
-        assertTrue(this.db.updateAirplaneSchedule(airplaneId, groundSpace, start2, end2));
+        assertTrue(this.db.updateAirplaneSchedule(scheduleId, groundSpace, start2, end2));
 
         Connection conn = getConnectionFromDb();
-        try (PreparedStatement ps = conn.prepareStatement("SELECT start_time, end_time FROM airplane_schedule WHERE airplane_id = ?")) {
-            ps.setString(1, airplaneId);
+        try (PreparedStatement ps = conn.prepareStatement("SELECT ground_space, start_time, end_time FROM airplane_schedule WHERE id = ?")) {
+            ps.setInt(1, scheduleId);
             try (ResultSet rs = ps.executeQuery()) {
                 assertTrue(rs.next());
+                assertEquals(groundSpace, rs.getInt("ground_space"));
                 assertEquals(start2, rs.getLong("start_time"));
                 assertEquals(end2, rs.getLong("end_time"));
             }
@@ -98,11 +110,10 @@ public class AirplaneScheduleTest {
     @Test
     void testRemoveAirplaneSchedule() throws Exception {
         String airplaneId = "DEL-1";
-        int groundSpace = 2;
         long start = 4000L;
         long end = 4100L;
 
-        assertTrue(this.db.updateAirplaneSchedule(airplaneId, groundSpace, start, end));
+        assertTrue(this.db.addAirplaneSchedule(airplaneId, start, end));
 
         // Ensure present
         Connection conn = getConnectionFromDb();

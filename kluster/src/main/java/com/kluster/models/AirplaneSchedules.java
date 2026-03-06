@@ -1,15 +1,22 @@
 package com.kluster.models;
 
 public class AirplaneSchedules {
+    private int databaseId;
     private String airplaneId;
     private int groundSpace;
     private long landingTimeStart;
     private long landingTimeEnd;
 
-    public AirplaneSchedules(String airplaneId, int groundSpace, long landingTimeStart, long landingTimeEnd) {
+    public AirplaneSchedules(int databaseId, String airplaneId, int groundSpace, long landingTimeStart, long landingTimeEnd) {
+        this.databaseId = databaseId;
         this.airplaneId = airplaneId;
+        this.groundSpace = groundSpace;
         this.landingTimeStart = landingTimeStart;
         this.landingTimeEnd = landingTimeEnd;
+    }
+
+    public int getDatabaseId() {
+        return databaseId;
     }
 
     public String getAirplaneId() {
