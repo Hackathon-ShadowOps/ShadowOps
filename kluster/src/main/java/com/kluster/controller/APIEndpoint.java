@@ -18,4 +18,8 @@ public abstract class APIEndpoint {
     public PersonnelRole[] allowedRoles() {
         return null; // null means public endpoint by default
     }
+
+    public int rateLimitPerMilisecond() {
+        return 1000;
+    }
 }

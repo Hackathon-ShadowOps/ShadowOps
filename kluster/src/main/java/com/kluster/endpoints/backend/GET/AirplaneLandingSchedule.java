@@ -37,4 +37,9 @@ public class AirplaneLandingSchedule extends APIEndpoint {
         ctx.contentType("application/json");
         ctx.json(json);
     }
+
+    @Override
+    public int rateLimitPerMilisecond() {
+        return 10; // Allow 2 requests per second for this endpoint
+    }
 }

@@ -218,6 +218,7 @@
 				} else {
 					showStatus("Saved", true);
 					await loadSchedules();
+					await getSchedules();
 				}
 			}
 			mode = null;
@@ -289,7 +290,10 @@
 		renderSchedules(schedules);
 	}
 
-	refreshBtn.addEventListener("click", () => loadSchedules());
+	refreshBtn.addEventListener("click", () => {
+		loadSchedules();
+		getSchedules();
+	});
 	spanSelect.addEventListener("change", () => {
 		viewSpanMinutes = parseInt(spanSelect.value, 10);
 		loadSchedules();
@@ -300,6 +304,9 @@
 	// initial load
 	buildRuler();
 	loadSchedules(true);
+	
+	// Expose loadSchedules globally so it can be called from form handlers
+	window.loadSchedules = loadSchedules;
 })();
 
 async function getSchedules() {
@@ -335,10 +342,53 @@ const scheduleForm = document.getElementById("create-schedule-form");
 const scheduleFeedback = document.getElementById("schedule-feedback");
 const scheduleList = document.getElementById("schedule-list");
 
+function formatDateTime(epochMinutes) {
+	const date = new Date(epochMinutes * 60000);
+	return date.toLocaleString();
+}
+
 function renderScheduleItem(schedule) {
 	const li = document.createElement("li");
-	li.textContent = `${schedule.name} | ${schedule.cron} | ${schedule.timezone} | ${schedule.enabled ? "enabled" : "disabled"}`;
-	scheduleList.prepend(li);
+	li.style.display = "flex";
+	li.style.alignItems = "center";
+	li.style.gap = "10px";
+	li.style.marginBottom = "10px";
+	
+	const info = document.createElement("span");
+	info.textContent = `${schedule.airplaneId} | Ground Space: ${schedule.groundSpace} | ${formatDateTime(schedule.landingTimeStart)} - ${formatDateTime(schedule.landingTimeEnd)}`;
+	
+	const removeBtn = document.createElement("button");
+	removeBtn.textContent = "Remove";
+	removeBtn.style.marginLeft = "auto";
+	removeBtn.onclick = async () => {
+		if (confirm(`Remove schedule for ${schedule.airplaneId}?`)) {
+			await removeSchedule(schedule.airplaneId);
+		}
+	};
+	
+	li.appendChild(info);
+	li.appendChild(removeBtn);
+	scheduleList.appendChild(li);
+}
+
+async function removeSchedule(airplaneId) {
+	try {
+		const res = await fetch(`/api/v1/removeAirplaneSchedule?airplaneId=${encodeURIComponent(airplaneId)}`, {
+			method: "DELETE",
+		});
+
+		if (!res.ok) {
+			const errText = await res.text();
+			scheduleFeedback.textContent = `Failed to remove schedule: ${errText}`;
+			return;
+		}
+
+		scheduleFeedback.textContent = "Schedule removed successfully.";
+		await getSchedules();
+		await loadSchedules();
+	} catch (err) {
+		scheduleFeedback.textContent = `Failed to remove schedule: ${err.message}`;
+	}
 }
 
 scheduleForm?.addEventListener("submit", async (e) => {
@@ -400,13 +450,15 @@ scheduleForm?.addEventListener("submit", async (e) => {
 		await res.text();
 
 		scheduleForm.reset();
-		document.getElementById("schedule-enabled").checked = true;
-		document.getElementById("schedule-timezone").value = "UTC";
 		scheduleFeedback.textContent = "Schedule created successfully.";
 
-		// Refresh timeline after create
+		// Refresh timeline and schedule list after create
+		await getSchedules();
 		loadSchedules();
 	} catch (err) {
 		scheduleFeedback.textContent = `Failed to create schedule: ${err.message}`;
 	}
 });
+
+// Initial load of schedules
+getSchedules();

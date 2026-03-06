@@ -143,3 +143,88 @@ button {
 	color: #fff;
 	opacity: 1;
 }
+
+#schedule-section {
+	margin-top: 30px;
+	padding: 20px;
+	border: 1px solid #e6e6e6;
+	border-radius: 8px;
+	background: #fafafa;
+}
+
+#schedule-section h2 {
+	margin-top: 0;
+	color: #333;
+}
+
+#schedule-section h3 {
+	margin-top: 25px;
+	margin-bottom: 15px;
+	color: #555;
+}
+
+#create-schedule-form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	max-width: 500px;
+}
+
+#create-schedule-form label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 14px;
+	color: #333;
+}
+
+#create-schedule-form input {
+	padding: 8px;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	font-size: 14px;
+}
+
+#schedule-feedback {
+	margin-top: 10px;
+	font-size: 14px;
+	color: #555;
+	font-weight: 500;
+}
+
+#schedule-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+#schedule-list li {
+	background: #fff;
+	padding: 12px;
+	border: 1px solid #e6e6e6;
+	border-radius: 6px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+#schedule-list li span {
+	flex: 1;
+	font-size: 14px;
+	color: #333;
+}
+
+#schedule-list li button {
+	background: #ff3b30;
+	color: #fff;
+	border: none;
+	padding: 6px 12px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 13px;
+	transition: background 0.2s ease;
+}
+
+#schedule-list li button:hover {
+	background: #d32f2f;
+}

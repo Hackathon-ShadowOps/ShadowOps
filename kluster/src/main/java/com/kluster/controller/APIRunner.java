@@ -42,12 +42,7 @@ public class APIRunner {
         for (APIEndpoint endPoint : getEndpoints) {
             app.get(endPoint.path(), ctx -> {
                 try {
-                    NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
-
-                    // Authorization check
-                    // if (!checkAuthorization(ctx, endPoint))
-                    //     return;
-
+                    NaiveRateLimit.requestPerTimeUnit(ctx, endPoint.rateLimitPerMilisecond(), TimeUnit.MILLISECONDS);
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
                     ctx.status(501).result("Not Implemented: " + endPoint.getClass().getSimpleName());
@@ -60,12 +55,7 @@ public class APIRunner {
         for (APIEndpoint endPoint : postEndpoints) {
             app.post(endPoint.path(), ctx -> {
                 try {
-                    NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
-
-                    // Authorization check
-                    // if (!checkAuthorization(ctx, endPoint))
-                    //     return;
-
+                    NaiveRateLimit.requestPerTimeUnit(ctx, endPoint.rateLimitPerMilisecond(), TimeUnit.MILLISECONDS);
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
                     ctx.status(501).result("Not Implemented: " + endPoint.getClass().getSimpleName());
@@ -78,12 +68,7 @@ public class APIRunner {
         for (APIEndpoint endPoint : deleteEndpoints) {
             app.delete(endPoint.path(), ctx -> {
                 try {
-                    NaiveRateLimit.requestPerTimeUnit(ctx, 1, TimeUnit.SECONDS);
-
-                    // Authorization check
-                    // if (!checkAuthorization(ctx, endPoint))
-                    //     return;
-
+                    NaiveRateLimit.requestPerTimeUnit(ctx, endPoint.rateLimitPerMilisecond(), TimeUnit.MILLISECONDS);
                     endPoint.handle(ctx);
                 } catch (UnsupportedOperationException e) {
                     ctx.status(501).result("Not Implemented: " + endPoint.getClass().getSimpleName());
