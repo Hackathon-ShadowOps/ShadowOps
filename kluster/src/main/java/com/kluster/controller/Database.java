@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 import com.google.gson.Gson;
 import com.kluster.Kluster;
+import com.kluster.models.Airplane;
+import com.kluster.models.AirplaneSchedules;
 
 public class Database {
     private Gson gson = new Gson();
@@ -75,6 +77,20 @@ public class Database {
             }
         } catch (SQLException e) {
             System.err.println("Failed to create database tables:");
+            e.printStackTrace(System.err);
+        }
+
+        String createAirplaneScheduleTable = "CREATE TABLE IF NOT EXISTS airplane_schedule (" +
+                "airplane_id TEXT PRIMARY KEY," +
+                "ground_space INTEGER NOT NULL," +
+                "start_time INTEGER NOT NULL," +
+                "end_time INTEGER NOT NULL" +
+                ");";
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(createAirplaneScheduleTable);
+        } catch (SQLException e) {
+            System.err.println("Failed to create airplane schedule table:");
             e.printStackTrace(System.err);
         }
     }
@@ -210,6 +226,96 @@ public class Database {
      */
     public <T> T convertFromJson(String json, Class<T> clazz) {
         return gson.fromJson(json, clazz);
+    }
+
+    public ArrayList<AirplaneSchedules> getAirplaneLandingSchedule(long startTime, long endTime) {
+        ArrayList<AirplaneSchedules> schedules = new ArrayList<AirplaneSchedules>();
+
+        // Retrieve all airplane schedules from the database
+        String sql = "SELECT airplane_id, ground_space, start_time, end_time FROM airplane_schedule " +
+                "WHERE (start_time < ? AND end_time > ?) OR (start_time >= ? AND start_time < ?) OR (end_time > ? AND end_time <= ?);";
+
+        ArrayList<AirplaneSchedules> allSchedules = new ArrayList<>();
+
+        try (
+                var pstmt = connection.prepareStatement(sql);
+                var rs = pstmt.executeQuery();) {
+            while (rs.next()) {
+                String airplaneId = rs.getString("airplane_id");
+                int groundSpace = rs.getInt("ground_space");
+                long scheduleStartTime = rs.getLong("start_time");
+                long scheduleEndTime = rs.getLong("end_time");
+
+                AirplaneSchedules schedule = new AirplaneSchedules(airplaneId, groundSpace, scheduleStartTime,
+                        scheduleEndTime);
+                allSchedules.add(schedule);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to retrieve airplane landing schedules:");
+            e.printStackTrace(System.err);
+            return null;
+        }
+
+        return schedules;
+    }
+
+    /**
+     * Updates the landing schedule for a specific airplane in the database. This
+     * method
+     * 
+     * @param airplaneId
+     * @param groundSpace The new ground space the airplane will occupy during its
+     *                    landing schedule
+     * @param startTime   The new start time for the airplane's landing schedule,
+     *                    represented as a Unix timestamp in minutes
+     * @param endTime     The new end time for the airplane's landing schedule,
+     *                    represented as a Unix timestamp in minutes
+     * @return
+     */
+    public boolean updateAirplaneSchedule(String airplaneId, int groundSpace, long startTime, long endTime) {
+        // Update the landing schedule for the specified airplane in the database based
+        String sql = "INSERT INTO airplane_schedule (airplane_id, ground_space, start_time, end_time) " +
+                "VALUES (?, ?, ?, ?) " +
+                "ON CONFLICT(airplane_id) DO UPDATE SET ground_space = excluded.ground_space, start_time = excluded.start_time, end_time = excluded.end_time;";
+
+        try (var pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, airplaneId);
+            pstmt.setInt(2, groundSpace);
+            pstmt.setLong(3, startTime);
+            pstmt.setLong(4, endTime);
+
+            pstmt.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Failed to update airplane schedule:");
+            e.printStackTrace(System.err);
+            return false;
+        }
+    }
+
+    /**
+     * Removes an airplane schedule from the database based on the provided airplane
+     * ID.
+     * 
+     * @param airplaneId The ID of the airplane whose schedule should be removed
+     * @return true if the schedule was successfully removed, false otherwise
+     */
+    public boolean removeAirplaneSchedule(String airplaneId) {
+        // Remove the airplane schedule from the database based on the provided airplane
+        // ID
+
+        String sql = "DELETE FROM airplane_schedule WHERE airplane_id = ?";
+
+        try (var pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, airplaneId);
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (Exception e) {
+            System.err.println("Failed to remove airplane schedule:");
+            e.printStackTrace(System.err);
+        }
+
+        return false;
     }
 
 }
