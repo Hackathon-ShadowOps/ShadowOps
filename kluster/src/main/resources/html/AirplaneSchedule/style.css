@@ -1,0 +1,109 @@
+:root {
+	--timeline-height: 160px;
+	--tick-color: #ddd;
+	--block-color: #2b7cff;
+	--block-color-2: #34c759;
+}
+body {
+	font-family:
+		Inter,
+		system-ui,
+		Segoe UI,
+		Roboto,
+		Helvetica,
+		Arial;
+	margin: 20px;
+}
+main {
+	max-width: 1100px;
+	margin: 0 auto;
+}
+.timeline {
+	position: relative;
+	border: 1px solid #e6e6e6;
+	padding: 12px;
+	background: #fafafa;
+}
+.ruler {
+	height: 28px;
+	position: relative;
+	margin-bottom: 8px;
+	border-bottom: 1px solid var(--tick-color);
+	display: flex;
+	align-items: center;
+}
+.ruler .tick {
+	height: 8px;
+	width: 1px;
+	background: var(--tick-color);
+	position: relative;
+}
+.ruler .tick span {
+	position: absolute;
+	top: 8px;
+	font-size: 12px;
+	color: #666;
+	transform: translateX(-50%);
+}
+.track {
+	height: var(--timeline-height);
+	position: relative;
+}
+.schedule-block {
+	position: absolute;
+	height: 40px;
+	border-radius: 6px;
+	background: linear-gradient(180deg, var(--block-color), #0d63d6);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	padding: 4px 8px;
+	box-sizing: border-box;
+	cursor: grab;
+}
+.schedule-block.dragging {
+	opacity: 0.9;
+	cursor: grabbing;
+}
+.schedule-block .label {
+	flex: 1;
+	font-size: 13px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.handle {
+	width: 8px;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.12);
+	cursor: ew-resize;
+	border-radius: 4px;
+}
+.handle.left {
+	margin-right: 6px;
+}
+.handle.right {
+	margin-left: 6px;
+}
+.meta {
+	font-size: 11px;
+	color: #fff;
+	margin-left: 8px;
+}
+.legend {
+	margin-top: 10px;
+	font-size: 13px;
+	color: #333;
+}
+.controls {
+	margin: 10px 0;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+button {
+	padding: 6px 10px;
+	border-radius: 6px;
+	border: 1px solid #ddd;
+	background: #fff;
+}

@@ -83,8 +83,8 @@ public class Database {
         String createAirplaneScheduleTable = "CREATE TABLE IF NOT EXISTS airplane_schedule (" +
                 "airplane_id TEXT PRIMARY KEY," +
                 "ground_space INTEGER NOT NULL," +
-                "start_time INTEGER NOT NULL," +
-                "end_time INTEGER NOT NULL" +
+                "start_time long NOT NULL," +
+                "end_time long NOT NULL" +
                 ");";
 
         try (Statement stmt = connection.createStatement()) {
@@ -316,6 +316,35 @@ public class Database {
         }
 
         return false;
+    }
+
+    public boolean addAirplaneSchedule(String airplaneId, long startTime, long endTime) {
+        // Add a new airplane schedule to the database with default values
+        String sql = "INSERT INTO airplane_schedule (airplane_id, ground_space, start_time, end_time) " +
+                "VALUES (?, 0, ?, ?);";
+
+        try (var pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, airplaneId);
+
+            System.out.println("Adding airplane schedule with start time: " + startTime + "\nand end time: " + endTime);
+
+            // Parse strings to long integers before setting
+            long startTimeLong = startTime;
+            long endTimeLong = endTime;
+
+            pstmt.setLong(2, startTimeLong);
+            pstmt.setLong(3, endTimeLong);
+            pstmt.executeUpdate();
+            return true;
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid time format - must be a valid number:");
+            e.printStackTrace(System.err);
+            return false;
+        } catch (Exception e) {
+            System.err.println("Failed to add airplane schedule:");
+            e.printStackTrace(System.err);
+            return false;
+        }
     }
 
 }

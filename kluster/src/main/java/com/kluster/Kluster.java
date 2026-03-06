@@ -58,6 +58,7 @@ public class Kluster {
         endpointsGet.add(new com.kluster.endpoints.backend.GET.ProductInfo(this));
         endpointsGet.add(new com.kluster.endpoints.backend.GET.SpecificDeliveryInfo(this));
         endpointsGet.add(new com.kluster.endpoints.backend.GET.VehicleInfo(this));
+        endpointsGet.add(new com.kluster.endpoints.backend.GET.AirplaneLandingSchedule(this));
 
         // Frontend
         endpointsGet.add(new com.kluster.endpoints.frontend.Base(this));
@@ -70,18 +71,22 @@ public class Kluster {
         endpointsGet.add(new com.kluster.endpoints.frontend.Personnel(this));
         endpointsGet.add(new com.kluster.endpoints.frontend.ProductInfo(this));
         endpointsGet.add(new com.kluster.endpoints.frontend.Vehicle(this));
-
-        ArrayList<APIEndpoint> endpointsPost = new ArrayList<>();
-        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.DeliveryRemoval(this));
-        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.PersonnelRemoval(this));
-        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.ProductRemoval(this));
-        endpointsPost.add(new com.kluster.endpoints.backend.DELETE.VehicleRemoval(this));
+        endpointsGet.add(new com.kluster.endpoints.frontend.AirplaneSchedule(this));
 
         ArrayList<APIEndpoint> endpointsDelete = new ArrayList<>();
-        endpointsDelete.add(new com.kluster.endpoints.backend.POST.DeliveryUpdate(this));
-        endpointsDelete.add(new com.kluster.endpoints.backend.POST.InventoryUpdate(this));
-        endpointsDelete.add(new com.kluster.endpoints.backend.POST.LogUpdate(this));
-        endpointsDelete.add(new com.kluster.endpoints.backend.POST.ProductUpdate(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.DELETE.DeliveryRemoval(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.DELETE.PersonnelRemoval(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.DELETE.ProductRemoval(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.DELETE.VehicleRemoval(this));
+        endpointsDelete.add(new com.kluster.endpoints.backend.DELETE.RemoveAirplaneSchedule(this));
+        
+        ArrayList<APIEndpoint> endpointsPost = new ArrayList<>();
+        endpointsPost.add(new com.kluster.endpoints.backend.POST.DeliveryUpdate(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.POST.InventoryUpdate(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.POST.LogUpdate(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.POST.ProductUpdate(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.POST.UpdateAirplaneSchedule(this));
+        endpointsPost.add(new com.kluster.endpoints.backend.POST.AddAirplaneSchedule(this));
 
         this.apiRunner.registerEndpoints(endpointsGet, endpointsPost, endpointsDelete);
     }

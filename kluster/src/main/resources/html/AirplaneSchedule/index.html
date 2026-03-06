@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Auth Demo</title>
+
+		<!-- INLINE_CSS -->
+	</head>
+	<body>
+		<main>
+			<h1>Airplane Schedule Demo</h1>
+			<div class="controls">
+				<button id="refresh">Refresh</button>
+				<label
+					>View span:
+					<select id="spanSelect">
+						<option value="60">1h</option>
+						<option value="120" selected>2h</option>
+						<option value="240">4h</option>
+					</select>
+				</label>
+			</div>
+			<div id="timeline" class="timeline">
+				<div id="ruler" class="ruler"></div>
+				<div id="track" class="track"></div>
+			</div>
+			<div class="legend">Drag blocks to move; drag edges to resize. Releases update backend.</div>
+
+			<section id="schedule-section">
+				<h2>Create Schedule</h2>
+
+				<form id="create-schedule-form">
+					<label>
+						Name
+						<input type="text" id="schedule-name" name="name" required />
+					</label>
+
+					<label>
+						Start Time
+						<input type="datetime-local" id="schedule-start" name="start" required />
+					</label>
+
+					<label>
+						End Time
+						<input type="datetime-local" id="schedule-end" name="end" required />
+					</label>
+
+					<button type="submit">Create Schedule</button>
+				</form>
+
+				<p id="schedule-feedback" role="status" aria-live="polite"></p>
+
+				<h3>Schedules</h3>
+				<ul id="schedule-list"></ul>
+			</section>
+		</main>
+		<!-- INLINE_JS -->
+	</body>
+</html>
